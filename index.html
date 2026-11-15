@@ -1,0 +1,1905 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Osdy · IA para Devs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  /* Osdy neon room */
+  --bg:#0b0820;--bg-dark:#0d0924;--bg-hl:#17112f;--bg-hl2:#221a45;--line:#3b2a6b;--line2:#5a3f9e;
+  --fg:#f3eeff;--fg2:#cdc3ea;--fg3:#a79dbf;--muted:#8376ad;
+  --violet:#b62af1;--neon:#c64bff;--pink:#fa96ff;--purple:#bb9af7;--magenta:#9d7cd8;
+  --cyan:#51e3ff;--sky:#7dcfff;--blue:#7aa2f7;--teal:#5fe0c4;--green:#9ece6a;
+  --yellow:#e0af68;--orange:#ff9e64;--red:#f7768e;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --px:'Press Start 2P',var(--mono);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;color:var(--fg);font-family:Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;background:var(--bg)}
+::selection{background:rgba(198,75,255,.4)}
+
+/* ---------- room backdrop ---------- */
+.bgfx{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(ellipse at 50% 125%,#3b1670 0%,#160c35 42%,transparent 72%),
+  radial-gradient(700px 420px at 92% -8%,rgba(81,227,255,.10),transparent 65%),
+  radial-gradient(700px 420px at 4% -6%,rgba(250,150,255,.10),transparent 65%),var(--bg)}
+.gridfx{position:fixed;left:-25%;right:-25%;bottom:0;height:40vh;z-index:0;pointer-events:none;opacity:.34;
+  transform:perspective(420px) rotateX(64deg);transform-origin:bottom;
+  background-image:linear-gradient(#c64bff66 2px,transparent 2px),linear-gradient(90deg,#c64bff66 2px,transparent 2px);
+  background-size:70px 70px;animation:gridscroll 2.6s linear infinite;
+  -webkit-mask-image:linear-gradient(transparent,#000 75%);mask-image:linear-gradient(transparent,#000 75%)}
+@keyframes gridscroll{to{background-position:0 70px}}
+.scan{position:fixed;inset:0;z-index:60;pointer-events:none;background:repeating-linear-gradient(transparent 0 3px,rgba(0,0,0,.16) 3px 4px)}
+.frame{position:fixed;inset:6px;z-index:25;pointer-events:none}
+.frame i{position:absolute;width:44px;height:44px;border:2px solid var(--violet);filter:drop-shadow(0 0 6px var(--neon));animation:breathe 4s ease-in-out infinite alternate}
+.frame i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;border-color:var(--pink)}
+.frame i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}
+.frame i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0}
+.frame i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0;border-color:var(--cyan);filter:drop-shadow(0 0 6px var(--cyan))}
+.frame b{position:absolute;height:2px;width:180px;top:0;left:0;background:linear-gradient(90deg,transparent,var(--pink),transparent);animation:sweep 9s linear infinite}
+.frame b+b{top:auto;bottom:0;background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation-direction:reverse}
+@keyframes sweep{from{left:-180px}to{left:100%}}
+@keyframes breathe{from{opacity:.6}to{opacity:1}}
+
+/* ---------- chrome ---------- */
+.topbar{position:fixed;inset:0 0 auto 0;height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 26px;z-index:30;background:linear-gradient(var(--bg) 55%,transparent)}
+.brand{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.brand svg{height:30px;width:auto;filter:drop-shadow(0 0 8px #c64bffaa);animation:breathe 4s ease-in-out infinite alternate}
+.brand .name{font:400 13px var(--px);color:var(--pink);text-shadow:0 0 10px #c64bffcc;letter-spacing:1px}
+.brand .sub{font:600 12px var(--mono);color:var(--muted)}
+.blocktag{font:600 12px var(--mono);color:var(--cyan);border:1px solid var(--line);background:#120c2bcc;padding:5px 12px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topright{display:flex;gap:10px;align-items:center;font:13px var(--mono);color:var(--muted)}
+.iconbtn{background:#120c2bee;border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:6px 11px;cursor:pointer;font:600 14px Inter,sans-serif;transition:.2s}
+.iconbtn:hover{border-color:var(--neon);box-shadow:0 0 14px #c64bff66}
+.progress{position:fixed;left:0;right:0;bottom:0;height:5px;background:var(--bg-hl);z-index:30}
+#bar{height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--pink) 60%,var(--cyan));box-shadow:0 0 12px var(--neon);transition:width .4s}
+.navbtns{position:fixed;right:24px;bottom:20px;display:flex;gap:8px;z-index:30}
+.navbtns button{width:44px;height:44px;border-radius:50%;font-size:18px}
+#toc{position:fixed;top:0;right:0;bottom:0;width:min(370px,90vw);background:#0d0924f5;border-left:1px solid var(--line2);box-shadow:-10px 0 40px #9d4bff33;z-index:40;transform:translateX(105%);transition:transform .35s ease;overflow-y:auto;padding:74px 18px 30px}
+#toc.open{transform:none}
+#toc h3{font:400 11px var(--px);color:var(--pink);margin:0 0 14px}
+#toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+#toc li{padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--fg2);font-size:14px;display:flex;gap:10px}
+#toc li span{font-family:var(--mono);color:var(--muted);min-width:22px}
+#toc li:hover{background:var(--bg-hl)}
+#toc li.cur{background:var(--bg-hl2);color:var(--cyan)}
+#toc li.div{color:var(--pink);font-weight:700;margin-top:8px}
+
+/* ---------- slides ---------- */
+.deck{position:fixed;inset:0;z-index:1}
+.slide{position:absolute;inset:0;padding:70px 44px 80px;overflow-y:auto;overflow-x:hidden;opacity:0;visibility:hidden;transform:translateX(60px) scale(.985);filter:blur(6px);transition:opacity .45s ease,transform .45s ease,filter .45s ease,visibility 0s .45s}
+.slide.active{opacity:1;visibility:visible;transform:none;filter:none;transition:opacity .45s ease,transform .45s ease,filter .45s ease,visibility 0s}
+.slide.past{transform:translateX(-60px) scale(.985)}
+.wrap{max-width:1200px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:16px}
+h1{font-size:clamp(32px,5vw,62px);line-height:1.06;margin:0;font-weight:800;letter-spacing:-1px;text-shadow:0 0 26px #c64bff66}
+h2{font-size:clamp(25px,3.1vw,40px);line-height:1.12;margin:0;font-weight:800;letter-spacing:-.5px;text-shadow:0 0 22px #c64bff55}
+h3{margin:0 0 6px;font-size:17px}
+p{line-height:1.55;margin:0}
+.grad{background:linear-gradient(90deg,var(--pink),var(--neon) 55%,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 14px #c64bff77)}
+.grad2{background:linear-gradient(90deg,var(--orange),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 14px #f7768e66)}
+.grad3{background:linear-gradient(90deg,var(--teal),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 14px #51e3ff66)}
+.lead{font-size:clamp(16px,1.55vw,19.5px);color:var(--fg2);max-width:880px}
+.kicker{font:400 10px var(--px);color:var(--cyan);letter-spacing:1px;text-transform:uppercase;text-shadow:0 0 10px #51e3ff88}
+.kicker::before{content:"</> ";color:var(--pink)}
+.muted{color:var(--muted)}.small{font-size:13px}
+.c-blue{color:var(--blue)}.c-cyan{color:var(--cyan)}.c-purple{color:var(--purple)}.c-green{color:var(--green)}.c-orange{color:var(--orange)}.c-red{color:var(--red)}.c-yellow{color:var(--yellow)}.c-teal{color:var(--teal)}.c-pink{color:var(--pink)}
+code{font-family:var(--mono);background:var(--bg-hl2);padding:1px 6px;border-radius:5px;color:var(--cyan);font-size:.9em}
+kbd{font:12px var(--mono);background:var(--bg-hl);border:1px solid var(--line2);border-bottom-width:3px;border-radius:6px;padding:1px 7px;color:var(--fg)}
+.card{position:relative;background:linear-gradient(160deg,#1a1336ee,#120c2bee);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:0 0 0 1px #0000,inset 0 0 28px #9d4bff14}
+.card::before,.card::after{content:"";position:absolute;width:16px;height:16px;pointer-events:none}
+.card::before{left:-1px;top:-1px;border-left:2px solid var(--pink);border-top:2px solid var(--pink);border-radius:14px 0 0 0;filter:drop-shadow(0 0 5px var(--neon))}
+.card::after{right:-1px;bottom:-1px;border-right:2px solid var(--cyan);border-bottom:2px solid var(--cyan);border-radius:0 0 14px 0;filter:drop-shadow(0 0 5px var(--cyan))}
+.card p,.card li{color:var(--fg2)}
+.card ul{margin:6px 0 0;padding-left:20px;line-height:1.6}
+.tag{display:inline-block;align-self:flex-start;font:700 11px var(--mono);padding:3px 9px;border-radius:999px;background:var(--bg-hl2);color:var(--cyan);margin-bottom:8px;border:1px solid var(--line)}
+.note{border-left:3px solid var(--pink);background:linear-gradient(90deg,rgba(198,75,255,.14),rgba(198,75,255,.03));padding:11px 16px;border-radius:0 12px 12px 0;color:var(--fg2);line-height:1.55}
+.note b{color:var(--pink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.split{display:grid;grid-template-columns:1.3fr .7fr;gap:26px;align-items:center}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:14px}
+.between{justify-content:space-between}
+
+/* ---------- buttons & inputs ---------- */
+.btn{background:linear-gradient(135deg,var(--neon),var(--pink));color:#160c35;border:0;border-radius:10px;padding:9px 14px;font:700 14px Inter,sans-serif;cursor:pointer;transition:transform .15s,filter .15s,box-shadow .15s;box-shadow:0 0 14px #c64bff55}
+.btn:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 0 22px #c64bff99}
+.btn.ghost{background:#120c2bcc;color:var(--fg);border:1px solid var(--line2);box-shadow:none}
+.btn.green{background:var(--green);box-shadow:0 0 14px #9ece6a55}.btn.orange{background:var(--orange);box-shadow:0 0 14px #ff9e6455}.btn.red{background:var(--red);box-shadow:0 0 14px #f7768e55}.btn.purple{background:var(--purple)}.btn.cyan{background:var(--cyan);box-shadow:0 0 14px #51e3ff55}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+textarea,input[type=number]{width:100%;background:var(--bg-dark);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:15px var(--mono)}
+textarea{min-height:76px;resize:vertical}
+textarea:focus,input:focus{outline:2px solid var(--neon);outline-offset:1px}
+input[type=range]{width:100%;accent-color:var(--neon)}
+label{font-size:13px;color:var(--fg3);display:flex;flex-direction:column;gap:6px}
+
+/* ---------- characters ---------- */
+.char{width:130px;flex:none}
+.char.lg{width:180px}.char.sm{width:90px}.char.xs{width:56px}
+.char svg{width:100%;height:auto;display:block;overflow:visible}
+.char[data-c=robot] svg{filter:drop-shadow(0 0 12px #51e3ff55)}
+.char[data-c=osdy] svg{filter:drop-shadow(0 0 12px #c64bff77)}
+.char[data-c=cachi] svg{filter:drop-shadow(0 0 12px #ff9e6455)}
+.char[data-c=tok] svg{filter:drop-shadow(0 0 8px #ffffff22)}
+.ch .bob{animation:bob 3s ease-in-out infinite}
+.ch .eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
+.ch .light{animation:pulse 1.4s ease-in-out infinite}
+.ch .core{animation:pulse 2s ease-in-out infinite}
+.ch .qmark,.ch .zzz{transform-box:fill-box;animation:floatq 1.8s ease-in-out infinite}
+.ch .tail{transform-box:view-box;transform-origin:90px 240px;animation:tail 2.8s ease-in-out infinite}
+.ch .rwave{transform-box:view-box;transform-origin:190px 186px;animation:rwave .9s ease-in-out infinite}
+.ch .hp{animation:pulse 2.2s ease-in-out infinite}
+@keyframes rwave{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(16deg)}}
+.ch.waving .arm-r{transform-box:fill-box;transform-origin:0% 50%;animation:wave .9s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4%)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes floatq{0%,100%{transform:translateY(0)}50%{transform:translateY(-20%)}}
+@keyframes wave{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(-70deg)}}
+@keyframes tail{0%,100%{transform:rotate(4deg)}50%{transform:rotate(-7deg)}}
+.say{display:flex;align-items:flex-end;gap:14px}
+.say.rev{flex-direction:row-reverse}
+.bubble{position:relative;background:#1a1336f2;border:1px solid var(--line2);border-radius:16px;padding:13px 16px;line-height:1.5;font-size:15.5px;max-width:480px;margin-bottom:28px;box-shadow:0 0 22px #9d4bff26}
+.bubble::before{content:"";position:absolute;left:-9px;bottom:20px;width:16px;height:16px;background:#1a1336;border-left:1px solid var(--line2);border-bottom:1px solid var(--line2);transform:rotate(45deg)}
+.say.rev .bubble::before{left:auto;right:-9px;transform:rotate(-135deg)}
+.bubble .who{display:block;font:400 9px var(--px);color:var(--pink);margin-bottom:7px;text-transform:uppercase}
+.bubble b{color:var(--cyan)}
+.bubble.flash{animation:flash .55s}
+@keyframes flash{from{border-color:var(--pink);box-shadow:0 0 0 4px #fa96ff44,0 0 30px #c64bff88}}
+.bubble.talking,.card.talking{border-color:var(--cyan);box-shadow:0 0 0 3px #51e3ff2e,0 0 26px #51e3ff55}
+.say:has(.bubble.talking) .char{animation:talk .3s ease-in-out infinite alternate}
+@keyframes talk{to{transform:translateY(-4px) rotate(-1.5deg)}}
+.iconbtn.off{position:relative;opacity:.55;filter:grayscale(1)}
+.iconbtn.off::after{content:"";position:absolute;left:16%;right:16%;top:50%;height:2px;border-radius:2px;background:var(--pink);transform:rotate(-38deg)}
+
+/* ---------- entry animations ---------- */
+.pop{opacity:0}
+.slide.active .pop{animation:pop .55s cubic-bezier(.2,.9,.3,1.25) var(--d,0s) both}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes growY{from{transform:scaleY(0)}to{transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flow{to{stroke-dashoffset:-12}}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+/* ---------- cover / dividers ---------- */
+.cover{display:grid;grid-template-columns:1.15fr .85fr;align-items:center;gap:30px}
+.termwin{background:#120c2bee;border:2px solid var(--purple);border-radius:14px;box-shadow:0 0 40px #9d4bff77,inset 0 0 30px #9d4bff2a;overflow:hidden}
+.termwin .tbar{display:flex;align-items:center;gap:7px;padding:10px 14px;border-bottom:2px solid var(--line);font:12px var(--mono);color:var(--muted)}
+.termwin .tbar i{width:11px;height:11px;border-radius:50%;background:var(--red)}.termwin .tbar i+i{background:var(--yellow)}.termwin .tbar i+i+i{background:var(--green);margin-right:8px}
+.termwin .tbody{padding:16px 18px;font:13.5px var(--mono);line-height:1.8;color:var(--fg3)}
+.termwin .l{white-space:nowrap;overflow:hidden;width:0}
+.slide.active .termwin .l{animation:typeL .9s steps(34) forwards}
+.slide.active .termwin .l:nth-child(1){animation-delay:.4s}.slide.active .termwin .l:nth-child(2){animation-delay:1.3s}.slide.active .termwin .l:nth-child(3){animation-delay:2.1s}.slide.active .termwin .l:nth-child(4){animation-delay:2.9s}.slide.active .termwin .l:nth-child(5){animation-delay:3.7s}
+@keyframes typeL{to{width:100%}}
+.termwin .l b{color:var(--green)}
+.cover .scene{display:flex;justify-content:center;align-items:flex-end;gap:6px;margin-top:6px}
+.block-num{font:400 11px var(--px);color:#160c35;background:linear-gradient(90deg,var(--pink),var(--neon));padding:8px 12px;border-radius:8px;box-shadow:0 0 18px #c64bff88}
+.divider .wrap{align-items:flex-start}
+.mini-toc{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.mini-toc li{background:#120c2bcc;border:1px solid var(--line2);border-radius:999px;padding:6px 12px;font:13px var(--mono);color:var(--fg2)}
+.parade{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.parade .char{animation:hop 1.2s ease-in-out infinite}
+.parade .char:nth-child(2){animation-delay:.15s}.parade .char:nth-child(3){animation-delay:.3s}.parade .char:nth-child(4){animation-delay:.45s}.parade .char:nth-child(5){animation-delay:.6s}.parade .char:nth-child(6){animation-delay:.75s}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-16px)}}
+.cast .card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}
+.cast .card h3{margin:0}
+.cast .role{font:400 8px var(--px);color:var(--cyan);text-transform:uppercase;line-height:1.5}
+
+/* ---------- layers ---------- */
+.rings{width:min(420px,100%);margin:auto}
+.ring{border-radius:50%;border:2px solid;display:flex;flex-direction:column;align-items:center;aspect-ratio:1;margin:0 auto;padding-top:5%;transition:box-shadow .4s,background .4s}
+.ring>span{font:800 13px var(--mono);margin-bottom:3%}
+.r1{width:100%;border-color:var(--blue);background:rgba(122,162,247,.06)}.r1>span{color:var(--blue)}
+.r2{width:80%;border-color:var(--purple);background:rgba(187,154,247,.07)}.r2>span{color:var(--purple)}
+.r3{width:74%;border-color:var(--cyan);background:rgba(81,227,255,.07)}.r3>span{color:var(--cyan)}
+.r4{width:66%;border-color:var(--pink);background:rgba(250,150,255,.12);justify-content:center;padding:0}.r4>span{color:var(--pink);margin:0}
+.ring.hot{box-shadow:0 0 34px currentColor,inset 0 0 34px currentColor}
+.r1.hot{color:#7aa2f755}.r2.hot{color:#bb9af755}.r3.hot{color:#51e3ff55}.r4.hot{color:#fa96ff66}
+.slide.active .ring{animation:ringIn .7s cubic-bezier(.2,.9,.3,1.2) both}
+.slide.active .r2{animation-delay:.25s}.slide.active .r3{animation-delay:.5s}.slide.active .r4{animation-delay:.75s}
+@keyframes ringIn{from{transform:scale(.5);opacity:0}to{transform:none;opacity:1}}
+.layer{border-left:4px solid;padding:10px 14px;border-radius:0 12px 12px 0;background:#17112fdd;transition:transform .35s,box-shadow .35s}
+.layer b{display:block;margin-bottom:2px}.layer p{font-size:14.5px;color:var(--fg2)}
+.layer.hot{transform:translateX(10px);box-shadow:0 0 26px #c64bff55}
+
+/* ---------- pipeline ---------- */
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.stage{position:relative;background:#120c2bee;border:1px solid var(--line);border-radius:12px;padding:12px;min-height:170px;display:flex;flex-direction:column;gap:8px;transition:.3s;opacity:.55}
+.stage h4{margin:0;font:400 9px var(--px);color:var(--muted);line-height:1.5}
+.stage.on{opacity:1;border-color:var(--pink);box-shadow:0 0 26px #c64bff77;transform:translateY(-4px)}
+.stage.on h4{color:var(--pink)}
+.stage:not(:last-child)::after{content:"▸";position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:var(--line2);font-size:14px}
+.stage.on:not(:last-child)::after{color:var(--pink)}
+.stage .body{font:13px var(--mono);line-height:1.9;word-break:break-word;flex:1}
+.ids span{display:inline-block;background:var(--bg-hl2);color:var(--cyan);border-radius:5px;padding:0 6px;margin:2px;font-size:12px;animation:pop .3s both}
+.net svg{width:100%;height:auto}
+.syn{stroke:#3b2a6b;stroke-width:1}
+.neu{fill:#2a1f55;stroke:var(--line2);stroke-width:1.5;transition:.3s}
+.fire .syn{stroke:var(--pink);stroke-dasharray:6 6;animation:flow .45s linear infinite}
+.fire .neu{fill:var(--cyan);filter:drop-shadow(0 0 5px var(--cyan))}
+.answer{font:600 clamp(18px,2vw,24px) var(--mono);min-height:1.6em}
+.answer .q{color:var(--muted)}.answer .a{color:var(--pink);text-shadow:0 0 14px #c64bff99}
+
+/* ---------- probability bars ---------- */
+.sentence{font-size:clamp(20px,2.3vw,28px);font-weight:600;line-height:1.45;min-height:2.9em}
+.sentence .new{color:var(--pink);display:inline-block;white-space:pre;animation:pop .45s both;text-shadow:0 0 12px #c64bff99}
+.cursor{display:inline-block;width:3px;height:1.05em;background:var(--cyan);vertical-align:-3px;margin-left:3px;animation:blinkc 1s steps(1) infinite;box-shadow:0 0 8px var(--cyan)}
+@keyframes blinkc{50%{opacity:0}}
+.probs{display:flex;flex-direction:column;gap:8px}
+.prob{display:grid;grid-template-columns:120px 1fr 52px;gap:10px;align-items:center;font:14px var(--mono);transition:color .3s,opacity .3s}
+.probs.mini .prob{grid-template-columns:70px 1fr 34px;font-size:11.5px;gap:6px}
+.prob .track{height:20px;background:var(--bg-dark);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.probs.mini .track{height:12px}
+.prob .fill{height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--purple));border-radius:5px;transition:width .7s cubic-bezier(.2,.8,.2,1),background .3s}
+.prob.win{color:var(--green);font-weight:700}.prob.win .fill{background:var(--green);box-shadow:0 0 12px var(--green)}
+.prob.lose{opacity:.4}
+
+/* ---------- training ---------- */
+.knobs{display:flex;gap:10px;flex-wrap:wrap}
+.knob{width:34px;height:34px;border-radius:50%;border:2px solid var(--purple);background:var(--bg-dark);position:relative;transition:transform .7s cubic-bezier(.3,1.5,.5,1);box-shadow:0 0 10px #bb9af744}
+.knob::after{content:"";position:absolute;left:50%;top:3px;width:3px;height:11px;border-radius:2px;background:var(--pink);transform:translateX(-50%)}
+.guess{display:inline-block;min-width:90px;text-align:center;padding:2px 12px;border-radius:8px;border:2px dashed var(--line2);font-family:var(--mono);transition:.3s}
+.guess.bad{border-style:solid;border-color:var(--red);color:var(--red);background:rgba(247,118,142,.12)}
+.guess.good{border-style:solid;border-color:var(--green);color:var(--green);background:rgba(158,206,106,.14);box-shadow:0 0 16px #9ece6a66}
+.chart{width:100%;height:auto;background:var(--bg-dark);border:1px solid var(--line);border-radius:10px}
+.timeline{position:relative;height:76px;margin-top:6px}
+.timeline .tl{position:absolute;left:0;right:0;top:30px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--violet) 0 68%,var(--bg-hl2) 68%)}
+.timeline .cut{position:absolute;left:68%;top:14px;width:3px;height:40px;background:var(--orange);border-radius:2px;box-shadow:0 0 10px var(--orange)}
+.timeline .cutlbl{position:absolute;left:68%;top:-6px;transform:translateX(-50%);font:700 12px var(--mono);color:var(--orange);white-space:nowrap}
+.timeline .today{position:absolute;top:22px;left:68%;font-size:20px}
+.slide.active .timeline .today{animation:today 5s 1s ease-in-out infinite alternate}
+@keyframes today{to{left:97%}}
+.timeline .lb{position:absolute;top:50px;font-size:12.5px;color:var(--fg3)}
+.timeline .lb.r{right:0;color:var(--muted)}
+.big-emoji{font-size:40px;line-height:1}
+
+/* ---------- tokenizer ---------- */
+.tokbox{background:var(--bg-dark);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:84px;font:15px var(--mono);line-height:2.15;white-space:pre-wrap;word-break:break-word}
+.tk{padding:3px 1px;border-radius:5px;margin:0 1px;animation:pop .3s both}
+.tk.k0{background:rgba(198,75,255,.34)}.tk.k1{background:rgba(81,227,255,.26)}.tk.k2{background:rgba(158,206,106,.26)}.tk.k3{background:rgba(255,158,100,.3)}.tk.k4{background:rgba(250,150,255,.28)}.tk.k5{background:rgba(122,162,247,.32)}
+.tk .sp{color:var(--muted);font-style:normal}
+.tk sup{color:var(--orange);font-size:10px;font-weight:700}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:#120c2bee;border:1px solid var(--line);border-radius:12px;padding:9px 14px;min-width:104px;flex:1}
+.stat b{display:block;font:700 22px var(--mono);color:var(--cyan);text-shadow:0 0 12px #51e3ff66}
+.stat span{font-size:12px;color:var(--muted)}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.formula{font:14px var(--mono);background:var(--bg-dark);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--fg2);overflow-x:auto}
+
+/* ---------- taximeter ---------- */
+.taxi{display:flex;align-items:flex-end;gap:10px;height:230px;padding:10px 12px 0;background:var(--bg-dark);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tcol{flex:1;display:flex;flex-direction:column-reverse;align-items:stretch;min-width:0;transform-origin:bottom;animation:growY .55s cubic-bezier(.2,.9,.3,1.2) both}
+.tcol span{font:11px var(--mono);color:var(--muted);text-align:center;padding:4px 0}
+.tcol i{display:block}
+.tcol .b{background:var(--purple)}.tcol .h{background:var(--blue)}.tcol .n{background:var(--pink);box-shadow:0 0 10px var(--pink);border-radius:4px 4px 0 0}
+.chatlog{display:flex;flex-direction:column;gap:6px;max-height:230px;overflow:hidden;justify-content:flex-end}
+.chatlog div{font:12.5px var(--mono);padding:7px 10px;border-radius:10px;animation:pop .35s both}
+.chatlog .u{align-self:flex-end;background:rgba(250,150,255,.16);border:1px solid #fa96ff55}
+.chatlog .a{align-self:flex-start;background:var(--bg-hl2);border:1px solid var(--line)}
+
+/* ---------- context window ---------- */
+.ctxbar{display:flex;height:66px;background:repeating-linear-gradient(45deg,var(--bg-dark) 0 10px,#130d2e 10px 20px);border:2px dashed var(--line2);border-radius:12px;overflow:hidden}
+.seg{height:100%;display:flex;align-items:center;justify-content:center;font:700 11px var(--mono);color:#160c35;white-space:nowrap;overflow:hidden;border-right:2px solid var(--bg-dark);transition:width .45s ease;flex:none}
+.seg.fresh{animation:segIn .45s both}
+@keyframes segIn{from{transform:scaleY(0);opacity:0}to{transform:none;opacity:1}}
+.meter{display:flex;justify-content:space-between;font:13px var(--mono);color:var(--fg3)}
+.floor{min-height:38px;border-top:3px solid var(--line2);padding-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.fallen{font:11px var(--mono);background:var(--bg-hl);color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 8px;text-decoration:line-through;animation:fall .7s cubic-bezier(.3,.1,.4,1.4) both}
+@keyframes fall{from{transform:translateY(-80px) rotate(-14deg);opacity:0}to{transform:rotate(4deg);opacity:1}}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--fg3)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* ---------- lost in the middle ---------- */
+.pages{display:grid;grid-template-columns:repeat(24,1fr);gap:4px}
+.pages i{aspect-ratio:.72;border-radius:4px;background:var(--purple);opacity:var(--att);position:relative;transition:transform .15s,box-shadow .15s;font-style:normal;display:grid;place-items:center;font-size:12px}
+.pages i.scan{transform:translateY(-8px) scale(1.15);box-shadow:0 0 14px var(--cyan);background:var(--cyan);opacity:1}
+.pages i.key{background:var(--yellow);opacity:1;box-shadow:0 0 14px var(--yellow)}
+.pages i.key::after{content:"🔑"}
+.axis{display:flex;justify-content:space-between;font:11px var(--mono);color:var(--muted)}
+.results{display:flex;flex-direction:column;gap:6px;min-height:104px}
+.results div{font:13.5px var(--mono);padding:7px 10px;border-radius:8px;background:var(--bg-dark);border-left:4px solid var(--line2);animation:pop .35s both}
+.results .ok{border-color:var(--green);color:var(--green)}.results .ko{border-color:var(--red);color:var(--red)}
+
+/* ---------- temperature ---------- */
+.templabel{font:800 22px var(--mono);color:var(--pink);text-shadow:0 0 12px #c64bff99}
+.samples{display:flex;flex-wrap:wrap;gap:6px;min-height:34px}
+.sample{font:13px var(--mono);padding:4px 10px;border-radius:999px;background:var(--bg-hl2);border:1px solid var(--line);animation:pop .3s both}
+
+/* ---------- cache ---------- */
+.cblocks{display:flex;gap:6px;flex-wrap:wrap;min-height:86px}
+.cb{flex-grow:var(--g);flex-basis:0;min-width:92px;border-radius:10px;border:2px solid var(--line);background:var(--bg-dark);padding:8px 10px;display:flex;flex-direction:column;gap:4px;transition:all .3s;animation:pop .35s both}
+.cb b{font-size:12.5px}.cb span{font:11px var(--mono);color:var(--muted)}
+.cb em{font:700 11px var(--mono);font-style:normal;margin-top:auto}
+.cb.scan{border-color:var(--yellow);box-shadow:0 0 0 4px rgba(224,175,104,.22),0 0 20px #e0af6866;transform:translateY(-4px)}
+.cb.hit{border-color:var(--green);background:rgba(158,206,106,.13);box-shadow:0 0 14px #9ece6a44}.cb.hit em{color:var(--green)}
+.cb.miss{border-color:var(--red);background:rgba(247,118,142,.11);box-shadow:0 0 14px #f7768e44}.cb.miss em{color:var(--red)}
+.cb.changed b{color:var(--orange)}
+.shelf{display:flex;gap:4px;flex-wrap:wrap;min-height:30px;padding:8px;border-radius:10px;background:var(--bg-dark);border:1px solid var(--line)}
+.shelf span{font:11px var(--mono);background:rgba(255,158,100,.18);color:var(--orange);padding:3px 8px;border-radius:6px;animation:pop .3s both}
+.hbar{display:grid;grid-template-columns:150px 1fr 64px;gap:10px;align-items:center;font:12.5px var(--mono);color:var(--fg3)}
+.hbar .track{height:16px;background:var(--bg-dark);border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+.hbar .fill{height:100%;border-radius:4px;transition:width .8s ease}
+.stackp{display:flex;flex-direction:column;gap:5px}
+.stackp div{font:12.5px var(--mono);padding:7px 10px;border-radius:8px;border-left:4px solid var(--line2);background:var(--bg-dark);display:flex;justify-content:space-between;gap:8px;transition:background .3s}
+.stackp div em{font-style:normal;font-weight:700;font-size:11px}
+.stackp .fhit{animation:fhit 1.2s}.stackp .fmiss{animation:fmiss 1.2s}
+.stackp .fhit em{color:var(--green)}.stackp .fmiss em{color:var(--red)}
+@keyframes fhit{0%{background:rgba(158,206,106,.4);box-shadow:0 0 16px #9ece6a88}100%{background:var(--bg-dark)}}
+@keyframes fmiss{0%{background:rgba(247,118,142,.45);box-shadow:0 0 16px #f7768e88}100%{background:var(--bg-dark)}}
+
+/* ---------- streaming ---------- */
+.stream{background:var(--bg-dark);border:1px solid var(--line);border-radius:12px;padding:14px;min-height:128px;font-size:15px;line-height:1.6;white-space:pre-wrap}
+.spinner{width:20px;height:20px;border:3px solid var(--line);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:middle}
+.timer{font:12px var(--mono);color:var(--muted)}
+.ttl{display:flex;gap:14px;align-items:center}
+.ttl svg{width:96px;flex:none}
+#ttl-ring{transition:stroke-dashoffset .1s linear,stroke .3s}
+
+/* ---------- prompt / chat ---------- */
+.prompt{font:13px var(--mono);background:var(--bg-dark);border-radius:12px;padding:12px 14px;white-space:pre-wrap;line-height:1.6;border:1px solid var(--line);color:var(--fg2)}
+.prompt .k{color:var(--pink);font-weight:700}
+.prompt.out{min-height:118px;color:var(--cyan);border-style:dashed}
+.verdict{font:700 12px var(--mono);opacity:0;transition:opacity .4s}.verdict.on{opacity:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:700 12px var(--mono);padding:5px 10px;border-radius:999px;border:1px solid var(--line2);background:#120c2bcc}
+.chat{display:flex;flex-direction:column;gap:10px}
+.msg{padding:11px 14px;border-radius:14px;max-width:92%;line-height:1.55;font-size:15px;position:relative}
+.msg.me{align-self:flex-end;background:rgba(250,150,255,.14);border:1px solid #fa96ff55}
+.msg.ai{align-self:flex-start;background:var(--bg-hl2);border:1px solid var(--line)}
+.msg pre{margin:8px 0 0;font:13px var(--mono);background:var(--bg-dark);padding:10px;border-radius:8px;white-space:pre-wrap;color:var(--cyan)}
+.fake{position:relative;display:block}
+.stamp{position:absolute;right:8px;top:2px;transform:rotate(-10deg) scale(2);border:3px solid var(--red);color:var(--red);font:400 10px var(--px);padding:6px 9px;border-radius:8px;opacity:0;background:rgba(11,8,32,.9);pointer-events:none;box-shadow:0 0 18px #f7768e88}
+.stamp.on{animation:stamp .4s cubic-bezier(.3,1.6,.5,1) forwards}
+@keyframes stamp{to{opacity:1;transform:rotate(-10deg) scale(1)}}
+.reveal{display:none}.reveal.on{display:block;animation:pop .45s both}
+
+/* ---------- agent loop ---------- */
+.loop{position:relative;width:min(330px,100%);aspect-ratio:1;margin:auto}
+.loop::before{content:"";position:absolute;inset:15%;border:2px dashed var(--line2);border-radius:50%;animation:spin 30s linear infinite}
+.node{position:absolute;transform:translate(-50%,-50%);background:#120c2bee;border:2px solid var(--line2);border-radius:14px;padding:8px 12px;font-weight:700;font-size:14px;white-space:nowrap;transition:all .3s;z-index:2}
+.node.on{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 0 5px rgba(81,227,255,.18),0 0 24px #51e3ff88;transform:translate(-50%,-50%) scale(1.1)}
+.n0{left:50%;top:13%}.n1{left:86%;top:50%}.n2{left:50%;top:87%}.n3{left:14%;top:50%}
+.loop .center,.hub .center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center}
+.packet{position:absolute;left:50%;top:50%;width:14px;height:14px;border-radius:50%;background:var(--pink);box-shadow:0 0 16px var(--pink),0 0 4px #fff;transform:translate(-50%,-50%);transition:left .55s ease,top .55s ease,opacity .3s;z-index:3;pointer-events:none}
+.log{font:13px var(--mono);display:flex;flex-direction:column;gap:6px;height:300px;overflow-y:auto;padding-right:4px}
+.log div{padding:8px 10px;border-radius:8px;background:var(--bg-dark);border-left:3px solid var(--blue);animation:pop .35s both;line-height:1.5}
+.log div b{display:block;font-size:11px;margin-bottom:2px}
+.log .t0{border-color:var(--purple)}.log .t0 b{color:var(--purple)}
+.log .t1{border-color:var(--orange)}.log .t1 b{color:var(--orange)}
+.log .t2{border-color:var(--cyan)}.log .t2 b{color:var(--cyan)}
+.log .t3{border-color:var(--green)}.log .t3 b{color:var(--green)}
+
+/* ---------- MCP ---------- */
+.hub{position:relative;width:min(560px,100%);aspect-ratio:1.45;margin:auto}
+.hub svg.lines{position:absolute;inset:0;width:100%;height:100%}
+.hub .flowl{stroke:var(--line2);stroke-dasharray:3 3;animation:flow 1s linear infinite}
+.plug{position:absolute;transform:translate(-50%,-50%);background:#120c2bee;border:2px solid var(--line2);border-radius:12px;padding:7px 11px;font:700 13px var(--mono);white-space:nowrap;transition:.3s;z-index:2}
+.plug.on{border-color:var(--pink);box-shadow:0 0 22px #c64bffaa;transform:translate(-50%,-50%) scale(1.12)}
+.hub .host{font:400 8px var(--px);color:#160c35;background:var(--pink);padding:5px 8px;border-radius:6px}
+.caption{font:13.5px var(--mono);min-height:66px;background:var(--bg-dark);border:1px solid var(--line);border-radius:10px;padding:10px 12px;line-height:1.6}
+
+/* ---------- RAG ---------- */
+.rag svg{width:100%;height:auto;background:var(--bg-dark);border:1px solid var(--line);border-radius:14px}
+.rag .rline{stroke-dasharray:300;stroke-dashoffset:300;animation:draw .8s ease forwards}
+.flowsteps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13.5px}
+.flowsteps span{background:#120c2bee;border:1px solid var(--line);padding:6px 10px;border-radius:10px;transition:all .3s}
+.flowsteps span.on{border-color:var(--pink);color:var(--pink);box-shadow:0 0 16px #c64bff88}
+.flowsteps i{color:var(--muted);font-style:normal}
+.retrieved{display:flex;flex-direction:column;gap:6px;min-height:40px}
+.retrieved div{font:13px var(--mono);background:var(--bg-dark);border-left:4px solid var(--green);padding:7px 10px;border-radius:8px;animation:pop .4s both}
+
+/* ---------- checklist & glossary ---------- */
+.checklist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.checklist li{background:#17112fee;border:1px solid var(--line);border-radius:12px;padding:11px 14px 11px 46px;position:relative;line-height:1.45;color:var(--fg2);font-size:14.5px}
+.checklist li b{color:var(--fg)}
+.checklist li::before{content:"✓";position:absolute;left:12px;top:11px;width:22px;height:22px;border-radius:6px;background:var(--green);color:#160c35;font-weight:800;display:grid;place-items:center;font-size:13px;box-shadow:0 0 10px #9ece6a88}
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px}
+.gloss div{background:#17112fee;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13.5px;color:var(--fg2);line-height:1.45}
+.gloss b{display:block;color:var(--cyan);font-family:var(--mono);font-size:13px;margin-bottom:2px}
+
+@media (max-width:900px){
+  .grid2,.grid3,.split,.cover{grid-template-columns:1fr}
+  .grid4{grid-template-columns:1fr 1fr}
+  .checklist{grid-template-columns:1fr}
+  .pipe{grid-template-columns:1fr 1fr}.stage::after{display:none}
+  .brand .sub{display:none}
+}
+@media (max-width:600px){
+  .slide{padding:64px 16px 80px}
+  .topbar{padding:0 14px}.brand .name{display:none}
+  .grid4,.pipe{grid-template-columns:1fr}
+  .char{width:92px}.char.lg{width:120px}.char.sm{width:72px}
+  .prob{grid-template-columns:90px 1fr 44px}
+  .hbar{grid-template-columns:96px 1fr 52px}
+  .bubble{font-size:14.5px}.say{gap:8px}
+  .pages{grid-template-columns:repeat(12,1fr)}
+}
+@media (prefers-reduced-motion:reduce){
+  .gridfx,.frame b,.frame i,.ch .bob,.ch .tail,.ch .rwave,.ch .hp,.parade .char,.loop::before,.say:has(.bubble.talking) .char{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="bgfx"></div><div class="gridfx"></div>
+<div class="frame"><i></i><i></i><i></i><i></i><b></b><b></b></div>
+<div class="scan"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 28 22" shape-rendering="crispEdges" aria-label="Osdy"><path fill="#dd70ff" d="M4 0h4v1h2v3h8V1h2V0h4v8h1v2h2v4h-2v3h-3v2h-4v2h-8v-2H6v-2H3v-3H1v-4h2V8h1Z"/><path fill="#a14cdb" d="M5 2h2v1h2v4h10V3h2V2h2v7h1v2h2v2h-2v3h-3v2H7v-2H4v-3H2v-2h2V9h1Z"/><path fill="#241039" d="M6 3h1v1h1v3H6Zm15 1h1V3h1v4h-2Z"/><path fill="#d7a5ed" d="M11 5h6v1h3v2h3v2h1v3h-3v4h-3v2h-8v-2H7v-4H4v-3h1V8h3V6h3Z"/><path fill="#301341" d="M5 9h6v1h2v4h-2v1H6v-1H4v-3h1Zm12 0h6v2h1v3h-2v1h-5v-1h-2v-4h2Z"/><path fill="#762893" d="M5 10h7v4H5Zm11 0h7v4h-7Z"/><path fill="#160e2a" d="M6 10h5v4H6Zm11 0h5v4h-5Z"/><path fill="#b660f6" d="M9 10h2v3H9Zm8 0h2v3h-2Z"/><path fill="#7be5ff" d="M9 10h1v1H9Zm8 0h1v1h-1Z"/><path fill="#8d34b4" d="M4 9h8v1H4Zm12 0h8v1h-8Zm-4 2h4v1h-4Z"/><path fill="#edd0f8" d="M10 14h8v1h2v2h-2v2h-8v-2H8v-2h2Z"/><path fill="#251333" d="M12 14h4v2h-1v1h-2v-1h-1Zm-2 3h2v1h4v-1h2v1h-1v1h-6v-1h-1Z"/></svg>
+    <span class="name">OSDY</span><span class="sub">· IA para Devs</span>
+  </div>
+  <div class="blocktag" id="blocktag">Inicio</div>
+  <div class="topright"><span id="counter">1 / 1</span><button class="iconbtn" id="voicebtn" title="Voz de los personajes (V)" aria-label="Voz de los personajes">🗣</button><button class="iconbtn" id="musicbtn" title="Música de fondo (M)" aria-label="Música de fondo">♪</button><button class="iconbtn" id="tocbtn" title="Índice (I)">☰</button></div>
+</header>
+
+<aside id="toc"><h3>ÍNDICE</h3><ol id="toclist"></ol></aside>
+
+<main class="deck">
+
+<!-- ================= PORTADA ================= -->
+<section class="slide" data-title="Portada" data-block="Inicio">
+  <div class="wrap cover">
+    <div class="stack">
+      <span class="kicker pop">Osdy presenta · Programar con IA</span>
+      <h1 class="pop" style="--d:.12s">De <span class="grad">“¿qué es un LLM?”</span><br>a <span class="grad2">“¿por qué tuve un cache miss?”</span></h1>
+      <p class="lead pop" style="--d:.28s">Todo lo que necesitás entender para programar con inteligencia artificial sin hacer magia negra: tokens, ventana de contexto, temperatura, caché, agentes, MCP y RAG. Con ejemplos de la vida real.</p>
+      <p class="muted pop" style="--d:.45s">Usá <kbd>←</kbd> <kbd>→</kbd> o <kbd>Espacio</kbd> para avanzar · <kbd>I</kbd> abre el índice · <kbd>V</kbd> voz · <kbd>M</kbd> música</p>
+    </div>
+    <div class="stack pop" style="--d:.35s">
+      <div class="termwin">
+        <div class="tbar"><i></i><i></i><i></i>~/osdy/curso-ia</div>
+        <div class="tbody">
+          <div class="l"><span class="c-pink">$</span> osdy curso --tema "IA para devs"</div>
+          <div class="l">&gt; cargando tokens… <b>ok</b></div>
+          <div class="l">&gt; midiendo ventana de contexto… <b>ok</b></div>
+          <div class="l">&gt; calentando la caché… <b>ok</b></div>
+          <div class="l">&gt; despertando a Robo… <b>listo ✓</b></div>
+        </div>
+      </div>
+      <div class="scene">
+        <div class="char lg" data-c="osdy" data-wave></div>
+        <div class="char sm" data-c="tok" data-col="#fa96ff" data-m="wow"></div>
+        <div class="char lg" data-c="robot" data-wave></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ELENCO ================= -->
+<section class="slide" data-title="Conocé a los personajes" data-block="Inicio">
+  <div class="wrap">
+    <span class="kicker pop">El elenco</span>
+    <h2 class="pop" style="--d:.1s">Los que te van a acompañar en este viaje</h2>
+    <div class="grid4 cast">
+      <div class="card pop" style="--d:.2s"><div class="char" data-c="osdy" data-wave></div><h3>Osdy</h3><span class="role">El dev (vos)</span><p>“Yo dirijo, Robo ejecuta. Y siempre reviso lo que hace.”</p></div>
+      <div class="card pop" style="--d:.35s"><div class="char" data-c="robot"></div><h3>Robo</h3><span class="role">El LLM</span><p>“Predigo el siguiente token. Lo hago muy bien, pero no soy mágico.”</p></div>
+      <div class="card pop" style="--d:.5s"><div class="row" style="justify-content:center;gap:4px"><div class="char xs" data-c="tok" data-col="#51e3ff"></div><div class="char xs" data-c="tok" data-col="#fa96ff" data-m="wow"></div><div class="char xs" data-c="tok" data-col="#9ece6a"></div></div><h3>Los Tokenitos</h3><span class="role">Pedacitos de texto</span><p>“Somos las piezas en que se corta el texto. ¡Y se cobra por cabeza!”</p></div>
+      <div class="card pop" style="--d:.65s"><div class="char" data-c="cachi"></div><h3>Cachi</h3><span class="role">La caché</span><p>“Guardo lo que ya se procesó para que no lo pagues dos veces.”</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BLOQUE 1 ================= -->
+<section class="slide divider" data-title="Bloque 1 · Fundamentos" data-block="Bloque 1 · Fundamentos" data-div>
+  <div class="wrap">
+    <span class="block-num pop">BLOQUE 1</span>
+    <h1 class="pop" style="--d:.1s"><span class="grad">Fundamentos</span></h1>
+    <p class="lead pop" style="--d:.2s">¿Qué es un LLM, cómo “piensa” y por qué no sabe lo que pasó ayer?</p>
+    <div class="say pop" style="--d:.35s">
+      <div class="char lg" data-c="robot" data-wave></div>
+      <div class="bubble"><span class="who">Robo</span>¡Hola! Antes de pedirme código, entendé <b>cómo funciono por dentro</b>. Te prometo que vas a programar mucho mejor conmigo.</div>
+    </div>
+    <ul class="mini-toc pop" style="--d:.5s"><li>1. IA, ML y LLM</li><li>2. Dentro de Robo</li><li>3. Predecir el siguiente token</li><li>4. Entrenamiento vs. inferencia</li></ul>
+  </div>
+</section>
+
+<section class="slide" id="s-layers" data-title="IA, Machine Learning y LLM" data-block="Bloque 1 · Fundamentos">
+  <div class="wrap">
+    <span class="kicker pop">1 · Las capas</span>
+    <h2 class="pop" style="--d:.1s">Un LLM es una mamushka: una cosa dentro de otra</h2>
+    <div class="grid2" style="align-items:center">
+      <div class="rings pop" style="--d:.15s">
+        <div class="ring r1"><span>Inteligencia Artificial</span>
+          <div class="ring r2"><span>Machine Learning</span>
+            <div class="ring r3"><span>Deep Learning</span>
+              <div class="ring r4"><span>LLM</span><div class="char xs" data-c="robot"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="layer pop" style="--d:.3s;border-color:var(--blue)"><b class="c-blue">IA</b><p>Cualquier sistema que imita algo “inteligente”. <i>Ejemplo real:</i> el GPS que calcula la ruta más rápida.</p></div>
+        <div class="layer pop" style="--d:.45s;border-color:var(--purple)"><b class="c-purple">Machine Learning</b><p>No se programan las reglas: se <b>aprenden de ejemplos</b>. <i>Ejemplo:</i> el filtro de spam que aprendió de millones de correos marcados.</p></div>
+        <div class="layer pop" style="--d:.6s;border-color:var(--cyan)"><b class="c-cyan">Deep Learning</b><p>ML con redes neuronales de muchas capas. <i>Ejemplo:</i> el celular que reconoce tu cara para desbloquearse.</p></div>
+        <div class="layer pop" style="--d:.75s;border-color:var(--pink)"><b class="c-pink">LLM (Large Language Model)</b><p>Deep Learning entrenado con muchísimo texto para <b>predecir el siguiente token</b>. <i>Ejemplos:</i> Claude, ChatGPT, Gemini.</p></div>
+      </div>
+    </div>
+    <div class="note pop" style="--d:.9s"><b>¿Por qué “Large”?</b> Porque tiene miles de millones de <b>parámetros</b>: imaginalos como perillas de una consola de sonido que se fueron ajustando durante el entrenamiento hasta que “sonara bien”.</div>
+  </div>
+</section>
+
+<section class="slide" id="s-pipe" data-title="Dentro de Robo: el viaje de una pregunta" data-block="Bloque 1 · Fundamentos">
+  <div class="wrap">
+    <span class="kicker pop">2 · El viaje completo</span>
+    <div class="row between pop" style="--d:.1s"><h2>¿Qué pasa cuando apretás Enter?</h2><button class="btn ghost" id="pipe-replay">↻ Repetir animación</button></div>
+    <div class="pipe pop" id="pipe" style="--d:.2s">
+      <div class="stage"><h4>1 · TEXTO</h4><div class="body" id="pipe-text"></div></div>
+      <div class="stage"><h4>2 · TOKENS</h4><div class="body" id="pipe-toks"></div></div>
+      <div class="stage"><h4>3 · NÚMEROS</h4><div class="body ids" id="pipe-ids"></div></div>
+      <div class="stage"><h4>4 · RED NEURONAL</h4><div class="body net" id="pipe-net"></div></div>
+      <div class="stage"><h4>5 · PROBABILIDADES</h4><div class="body"><div class="probs mini" id="pipe-probs"></div></div></div>
+    </div>
+    <div class="card pop" style="--d:.3s">
+      <div class="row between"><span class="muted small">Respuesta que se va armando, de a un token:</span><span class="timer" id="pipe-count"></span></div>
+      <div class="answer" id="pipe-ans"></div>
+    </div>
+    <div class="grid2">
+      <div class="say pop" style="--d:.4s"><div class="char sm" data-c="robot" id="pipe-robot"></div><div class="bubble" id="pipe-say" style="margin-bottom:8px"><span class="who">Robo</span>Mirá el recorrido: por cada token que escribo, <b>doy toda la vuelta de nuevo</b>.</div></div>
+      <div class="note pop" style="--d:.5s"><b>Lo que hay que llevarse:</b> Robo nunca ve letras. Ve <b>números</b> (los IDs de los tokens), hace cuentas con sus parámetros y devuelve probabilidades. Nada más. Nada menos.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-next" data-title="Predecir el siguiente token" data-block="Bloque 1 · Fundamentos">
+  <div class="wrap">
+    <span class="kicker pop">3 · Cómo “piensa”</span>
+    <h2 class="pop" style="--d:.1s">Un LLM hace UNA sola cosa: adivinar qué viene después</h2>
+    <div class="split">
+      <div class="card stack pop" style="--d:.2s">
+        <div class="sentence" id="nt-sentence"></div>
+        <div class="probs" id="nt-probs"></div>
+        <div class="row"><button class="btn" id="nt-go">Predecir siguiente token ▸</button><button class="btn ghost" id="nt-reset">Reiniciar</button></div>
+      </div>
+      <div class="stack" style="align-items:center">
+        <div class="say rev pop" style="--d:.35s">
+          <div class="char" data-c="robot" id="nt-robot"></div>
+          <div class="bubble" id="nt-say"><span class="who">Robo</span>Ahora manejás vos. Tocá el botón: calculo <b>qué token es más probable</b>, lo agrego al texto y vuelvo a calcular.</div>
+        </div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="note pop" style="--d:.5s"><b>Ejemplo de la vida real:</b> es el autocompletado del teclado de tu celular… pero después de leer casi todo internet, libros y repositorios de código.</div>
+      <div class="note pop" style="--d:.6s"><b>Dato clave:</b> esto se llama <b>autorregresivo</b>. Cada token generado pasa a ser parte de la entrada del siguiente. Por eso una respuesta larga tarda más.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-train" data-title="Entrenamiento vs. inferencia" data-block="Bloque 1 · Fundamentos">
+  <div class="wrap">
+    <span class="kicker pop">4 · Estudiar vs. rendir</span>
+    <div class="row between pop" style="--d:.1s"><h2>Entrenar es ajustar perillas hasta acertar</h2><button class="btn ghost" id="train-replay">↻ Repetir</button></div>
+    <div class="grid2" style="align-items:start">
+      <div class="card stack pop" style="--d:.2s">
+        <span class="tag">ENTRENAMIENTO · ROBO ESTUDIA</span>
+        <p style="font-size:19px;font-weight:600;color:var(--fg)">“El gato se durmió en el <span class="guess" id="tr-guess">___</span>”</p>
+        <div><span class="muted small">Parámetros (las perillas). En un modelo real hay miles de millones:</span><div class="knobs" id="tr-knobs" style="margin-top:8px"></div></div>
+        <div class="grid2" style="gap:12px;align-items:center">
+          <svg class="chart" viewBox="0 0 240 120"><text x="232" y="14" fill="#8376ad" font-size="9" font-family="JetBrains Mono" text-anchor="end">error por intento</text><line x1="20" y1="105" x2="232" y2="105" stroke="#3b2a6b"/><polyline id="tr-line" fill="none" stroke="#fa96ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points=""/><g id="tr-dots"></g></svg>
+          <div class="stats"><div class="stat"><b id="tr-loss">–</b><span>error</span></div><div class="stat"><b id="tr-try">0</b><span>intento</span></div></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="say rev pop" style="--d:.3s"><div class="char" data-c="robot" id="tr-robot"></div><div class="bubble" id="tr-say"><span class="who">Robo</span>Me tapan una palabra, adivino, me corrigen y muevo las perillas. Así, billones de veces.</div></div>
+        <div class="card pop" style="--d:.45s">
+          <span class="tag" style="color:var(--green)">INFERENCIA · ROBO RINDE EL EXAMEN</span>
+          <ul><li>Es cada vez que le escribís algo.</li><li>Las perillas <b>ya no se mueven</b>: usa lo aprendido.</li><li><b>No aprende de tu chat</b>: cada conversación arranca de cero.</li></ul>
+        </div>
+      </div>
+    </div>
+    <div class="card pop" style="--d:.55s">
+      <h3>Knowledge cutoff: la fecha de corte</h3>
+      <div class="timeline"><div class="tl"></div><div class="cut"></div><div class="cutlbl">✂ fecha de corte</div><span class="today">📅</span><span class="lb">Lo que leyó al entrenar: lo “sabe”</span><span class="lb r">El calendario sigue avanzando: esto no lo sabe</span></div>
+      <p>Le preguntás por la versión de una librería que salió el mes pasado y responde con información vieja o inventa. <b class="c-cyan">Solución:</b> pasale la documentación en el contexto o usá herramientas con búsqueda web.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BLOQUE 2 ================= -->
+<section class="slide divider" data-title="Bloque 2 · Tokens y contexto" data-block="Bloque 2 · Tokens y contexto" data-div>
+  <div class="wrap">
+    <span class="block-num pop" style="background:linear-gradient(90deg,var(--teal),var(--cyan))">BLOQUE 2</span>
+    <h1 class="pop" style="--d:.1s"><span class="grad3">Tokens y contexto</span></h1>
+    <p class="lead pop" style="--d:.2s">La moneda con la que se paga todo, y la mesa de trabajo donde Robo apoya lo que sabe.</p>
+    <div class="parade pop" style="--d:.3s">
+      <div class="char sm" data-c="tok" data-col="#51e3ff"></div>
+      <div class="char sm" data-c="tok" data-col="#fa96ff" data-m="wow"></div>
+      <div class="char sm" data-c="tok" data-col="#9ece6a"></div>
+      <div class="char sm" data-c="tok" data-col="#ff9e64"></div>
+      <div class="char sm" data-c="tok" data-col="#bb9af7" data-m="wow"></div>
+      <div class="char sm" data-c="tok" data-col="#7aa2f7"></div>
+    </div>
+    <div class="bubble pop" style="--d:.45s;margin-bottom:0"><span class="who">Los Tokenitos</span>¡Somos nosotros! Robo no lee letras ni palabras: <b>lee tokens</b>. Y cada uno de nosotros cuenta para el costo y para el límite.</div>
+    <ul class="mini-toc pop" style="--d:.55s"><li>5. ¿Qué es un token?</li><li>6. Cómo se calcula el costo</li><li>7. El taxímetro</li><li>8. Ventana de contexto</li><li>9. Más contexto ≠ mejor</li><li>10. Temperatura</li></ul>
+  </div>
+</section>
+
+<section class="slide" data-title="¿Qué es un token?" data-block="Bloque 2 · Tokens y contexto">
+  <div class="wrap">
+    <span class="kicker pop">5 · Tokens</span>
+    <h2 class="pop" style="--d:.1s">Un token es un pedacito de texto. A veces una palabra, a veces media.</h2>
+    <div class="split" style="align-items:start">
+      <div class="stack pop" style="--d:.2s">
+        <div class="row">
+          <button class="btn ghost" data-preset="es">🇪🇸 Español</button>
+          <button class="btn ghost" data-preset="en">🇺🇸 Inglés</button>
+          <button class="btn ghost" data-preset="code">💻 Código</button>
+          <button class="btn ghost" data-preset="emoji">🚀 Emojis</button>
+          <button class="btn cyan" id="tok-ids">Ver como números</button>
+        </div>
+        <textarea id="tok-input" spellcheck="false"></textarea>
+        <div class="tokbox" id="tok-out"></div>
+        <div class="stats">
+          <div class="stat"><b id="st-chars">0</b><span>caracteres</span></div>
+          <div class="stat"><b id="st-words">0</b><span>palabras</span></div>
+          <div class="stat"><b id="st-toks" style="color:var(--pink)">0</b><span>tokens (aprox.)</span></div>
+          <div class="stat"><b id="st-ratio">0</b><span>caracteres / token</span></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="say rev pop" style="--d:.35s"><div class="char sm" data-c="tok" data-col="#9ece6a"></div><div class="bubble"><span class="who">Tokenito</span>¡Escribí algo y mirá cómo nos cortamos! El <b>·</b> es un espacio: también viaja dentro de un token.</div></div>
+        <div class="note pop" style="--d:.5s"><b>Probá esto:</b> la misma frase en español y en inglés. El español suele gastar <b>más tokens</b>, porque los tokenizadores se entrenaron con más texto en inglés.</div>
+        <div class="note pop" style="--d:.6s"><b>Ojo:</b> esta demo es una <b>aproximación didáctica</b>. Cada modelo tiene su propio tokenizador y los números reales cambian.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Cómo se calcula el costo" data-block="Bloque 2 · Tokens y contexto">
+  <div class="wrap">
+    <span class="kicker pop">6 · La cuenta</span>
+    <h2 class="pop" style="--d:.1s">Se paga por token: los que entran y los que salen</h2>
+    <div class="grid2" style="align-items:start">
+      <div class="card stack pop" style="--d:.2s">
+        <h3>🧮 Calculadora</h3>
+        <div class="calc">
+          <label>Tokens de entrada por request<input type="number" id="c-in" value="12000" min="0"></label>
+          <label>Tokens de salida por request<input type="number" id="c-out" value="800" min="0"></label>
+          <label>USD por 1M tokens de entrada<input type="number" id="c-pin" value="3" min="0" step="0.1"></label>
+          <label>USD por 1M tokens de salida<input type="number" id="c-pout" value="15" min="0" step="0.1"></label>
+          <label>Requests por día<input type="number" id="c-req" value="200" min="0"></label>
+        </div>
+        <div class="formula">costo = (entrada × precio_in + salida × precio_out) ÷ 1.000.000</div>
+        <div class="stats">
+          <div class="stat"><b id="c-r1">$0</b><span>por request</span></div>
+          <div class="stat"><b id="c-rd">$0</b><span>por día</span></div>
+          <div class="stat"><b id="c-rm" style="color:var(--orange)">$0</b><span>por mes (30 días)</span></div>
+        </div>
+        <p class="muted small">Precios de ejemplo. Revisá siempre la página de precios de tu proveedor y del modelo que uses.</p>
+      </div>
+      <div class="stack">
+        <div class="card pop" style="--d:.3s">
+          <h3>📏 Reglas de bolsillo</h3>
+          <ul>
+            <li>En inglés, 1 token ≈ <b>4 caracteres</b> ≈ ¾ de palabra.</li>
+            <li>En español, el mismo texto suele necesitar <b>algunos tokens más</b>.</li>
+            <li>Una línea de código ≈ <b>8 a 12 tokens</b> (depende mucho del código).</li>
+            <li>La <b>salida</b> suele costar <b>varias veces más</b> que la entrada.</li>
+          </ul>
+        </div>
+        <div class="say pop" style="--d:.45s"><div class="char sm" data-c="osdy" data-m="wow"></div><div class="bubble"><span class="who">Osdy</span>Entonces pedirle “explicame todo con lujo de detalle” sale más caro que “respondé en 3 líneas”. <b>La salida es lo más caro.</b></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-taxi" data-title="El taxímetro de una conversación" data-block="Bloque 2 · Tokens y contexto">
+  <div class="wrap">
+    <span class="kicker pop">7 · El taxímetro</span>
+    <div class="row between pop" style="--d:.1s"><h2>Cada mensaje nuevo vuelve a pagar toda la charla</h2><button class="btn ghost" id="taxi-replay">↻ Repetir</button></div>
+    <p class="lead pop" style="--d:.15s">Ejemplo real: pegás un archivo de 400 líneas y charlás 8 mensajes con Robo. Mirá qué se envía en cada uno.</p>
+    <div class="grid2" style="grid-template-columns:.7fr 1.3fr;align-items:stretch">
+      <div class="card pop" style="--d:.2s"><div class="chatlog" id="tx-chat"></div></div>
+      <div class="card stack pop" style="--d:.25s">
+        <div class="taxi" id="tx-chart"></div>
+        <div class="legend"><span><i style="background:var(--purple)"></i>System + archivo (6.000 tk)</span><span><i style="background:var(--blue)"></i>Historial reenviado</span><span><i style="background:var(--pink)"></i>Tu mensaje nuevo (300 tk)</span></div>
+      </div>
+    </div>
+    <div class="stats pop" style="--d:.3s">
+      <div class="stat"><b id="tx-in">0</b><span>tokens de entrada en este mensaje</span></div>
+      <div class="stat"><b id="tx-typed" style="color:var(--pink)">0</b><span>tokens que vos escribiste en total</span></div>
+      <div class="stat"><b id="tx-total" style="color:var(--orange)">0</b><span>tokens de entrada facturados en total</span></div>
+      <div class="stat"><b id="tx-x">×1</b><span>cuánto más de lo que escribiste</span></div>
+    </div>
+    <div class="note pop" style="--d:.4s"><b>Por eso:</b> una conversación nueva por tarea, y de acá sale la necesidad de la <b>caché</b> (Bloque 3): casi todo lo que se reenvía es idéntico al mensaje anterior.</div>
+  </div>
+</section>
+
+<section class="slide" data-title="Ventana de contexto" data-block="Bloque 2 · Tokens y contexto">
+  <div class="wrap">
+    <span class="kicker pop">8 · Ventana de contexto</span>
+    <h2 class="pop" style="--d:.1s">La ventana de contexto es la mesa de trabajo de Robo</h2>
+    <p class="lead pop" style="--d:.15s">Todo lo que Robo “sabe” de tu conversación tiene que entrar en esta mesa. Tiene un tamaño fijo, y lo que no entra <b>se cae</b>.</p>
+    <div class="split" style="align-items:start">
+      <div class="card stack pop" style="--d:.2s">
+        <div class="meter"><span>Ventana de ejemplo: 100.000 tokens</span><span id="ctx-used">0k</span></div>
+        <div class="ctxbar" id="ctx-bar"></div>
+        <div class="legend">
+          <span><i style="background:var(--purple)"></i>System prompt</span><span><i style="background:var(--teal)"></i>Herramientas</span><span><i style="background:var(--pink)"></i>Tus mensajes</span><span><i style="background:var(--cyan)"></i>Respuestas</span><span><i style="background:var(--orange)"></i>Archivos</span><span><i style="background:var(--green)"></i>Resumen</span>
+        </div>
+        <div class="row">
+          <button class="btn cyan" id="ctx-auto">▶ Ver una tarde de trabajo</button>
+          <button class="btn" id="ctx-msg">+ Pregunta y respuesta</button>
+          <button class="btn orange" id="ctx-file">+ Archivo grande</button>
+          <button class="btn green" id="ctx-compact">Compactar</button>
+          <button class="btn ghost" id="ctx-reset">Nueva conversación</button>
+        </div>
+        <div><span class="muted small">El piso (lo que se cayó de la mesa):</span><div class="floor" id="ctx-floor"></div></div>
+      </div>
+      <div class="stack">
+        <div class="say rev pop" style="--d:.35s"><div class="char" data-c="robot" id="ctx-robot"></div><div class="bubble" id="ctx-say"><span class="who">Robo</span>¡Mesa limpia! Agregá mensajes y archivos, o mirá el ejemplo automático.</div></div>
+        <div class="note pop" style="--d:.5s"><b>Lo más importante:</b> Robo no tiene memoria. En <b>cada</b> mensaje, la app le reenvía toda la mesa: system prompt, historial y archivos.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-lim" data-title="Más contexto ≠ mejor" data-block="Bloque 2 · Tokens y contexto">
+  <div class="wrap">
+    <span class="kicker pop">9 · Lost in the middle</span>
+    <div class="row between pop" style="--d:.1s"><h2>Que entre en la mesa no significa que Robo lo vea bien</h2><button class="btn ghost" id="lim-replay">↻ Repetir</button></div>
+    <div class="grid2" style="align-items:start">
+      <div class="card stack pop" style="--d:.2s">
+        <p><b>Experimento:</b> escondemos un dato 🔑 (“la API key de staging vence el viernes”) en un documento de 24 páginas y le preguntamos a Robo.</p>
+        <div class="pages" id="lim-pages"></div>
+        <div class="axis"><span>◂ inicio: lo lee con atención</span><span>medio: más tenue</span><span>final: con atención ▸</span></div>
+        <div class="results" id="lim-res"></div>
+        <p class="small muted">Efecto “lost in the middle”: lo del medio de un contexto muy largo se aprovecha peor. Los modelos nuevos mejoraron mucho, pero sigue siendo buena práctica tenerlo en cuenta.</p>
+      </div>
+      <div class="stack">
+        <div class="say rev pop" style="--d:.3s"><div class="char sm" data-c="robot" id="lim-robot"></div><div class="bubble" id="lim-say"><span class="who">Robo</span>Si me pasás 200 archivos para arreglar un bug, me cuesta encontrar la <b>aguja en el pajar</b>.</div></div>
+        <div class="card pop" style="--d:.45s">
+          <h3>Cómo usar bien la mesa</h3>
+          <ul>
+            <li>Pasale <b>sólo los archivos relevantes</b>, no el repo entero.</li>
+            <li>Lo importante, <b>al principio o al final</b>.</li>
+            <li><b>Una conversación nueva por tarea</b>.</li>
+            <li><b>Compactar</b> libera espacio, pero pierde detalles.</li>
+          </ul>
+        </div>
+        <div class="note pop" style="--d:.6s"><b>Vida real:</b> leer un contrato de 80 páginas de un tirón. Te acordás de la primera y de la última… y el medio, más o menos.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-temp" data-title="Temperatura" data-block="Bloque 2 · Tokens y contexto">
+  <div class="wrap">
+    <span class="kicker pop">10 · Temperatura</span>
+    <h2 class="pop" style="--d:.1s">Temperatura: ¿Robo elige siempre lo más probable o se arriesga?</h2>
+    <div class="split" style="align-items:start">
+      <div class="card stack pop" style="--d:.2s">
+        <p style="font-size:20px;font-weight:600;color:var(--fg)">“El cielo está <span class="c-cyan">___</span>”</p>
+        <div class="row between"><span class="muted small">Temperatura</span><span class="templabel" id="t-val">0.7</span></div>
+        <input type="range" id="t-range" min="0.1" max="2" step="0.1" value="0.7">
+        <div class="probs" id="t-probs"></div>
+        <div class="row"><button class="btn" id="t-sample">🎲 Generar 20 respuestas</button><span class="muted small" id="t-mood"></span></div>
+        <div class="samples" id="t-samples"></div>
+      </div>
+      <div class="stack">
+        <div class="say rev pop" style="--d:.35s"><div class="char" data-c="robot" id="t-robot"></div><div class="bubble" id="t-say"><span class="who">Robo</span>Movés la perilla y cambia cómo reparto las probabilidades antes de elegir.</div></div>
+        <div class="card pop" style="--d:.5s">
+          <ul>
+            <li><b class="c-cyan">Baja (≈0 a 0.3):</b> casi siempre lo más probable. Ideal para <b>código</b>, extraer datos o JSON.</li>
+            <li><b class="c-purple">Media:</b> equilibrio para chatear o explicar.</li>
+            <li><b class="c-orange">Alta (&gt;1):</b> más variedad. Sirve para lluvia de ideas… o para decir que el cielo está “de chocolate”.</li>
+          </ul>
+          <p class="small muted" style="margin-top:8px">Parientes: <b>top-p</b> y <b>top-k</b> recortan las opciones poco probables antes de elegir.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BLOQUE 3 ================= -->
+<section class="slide divider" data-title="Bloque 3 · Caché y rendimiento" data-block="Bloque 3 · Caché y rendimiento" data-div>
+  <div class="wrap">
+    <span class="block-num pop" style="background:linear-gradient(90deg,var(--orange),var(--red))">BLOQUE 3</span>
+    <h1 class="pop" style="--d:.1s"><span class="grad2">Caché y rendimiento</span></h1>
+    <p class="lead pop" style="--d:.2s">¿Por qué a veces la misma pregunta cuesta 10 veces menos? Te presento a Cachi.</p>
+    <div class="say pop" style="--d:.35s">
+      <div class="char lg" data-c="cachi" data-wave></div>
+      <div class="bubble"><span class="who">Cachi</span>Soy el archivero. Cuando mandás un prompt, guardo lo que Robo ya procesó. Si el próximo <b>empieza exactamente igual</b>, te lo doy listo: es un <b>cache hit</b>. Si no… es un <b class="c-red">cache miss</b>.</div>
+    </div>
+    <ul class="mini-toc pop" style="--d:.5s"><li>11. Cache hit vs. cache miss</li><li>12. Cómo aprovechar la caché</li><li>13. Streaming, latencia y TTL</li></ul>
+  </div>
+</section>
+
+<section class="slide" data-title="Cache hit vs. cache miss" data-block="Bloque 3 · Caché y rendimiento">
+  <div class="wrap">
+    <span class="kicker pop">11 · Prompt caching</span>
+    <h2 class="pop" style="--d:.1s">Cachi compara tu prompt <u>desde el principio</u>, bloque por bloque</h2>
+    <div class="split" style="align-items:start">
+      <div class="card stack pop" style="--d:.2s">
+        <div class="row">
+          <button class="btn" data-run="r1">1ª pregunta</button>
+          <button class="btn green" data-run="r2">2ª pregunta (mismo inicio)</button>
+          <button class="btn red" data-run="r3">Meter la hora en el system prompt</button>
+          <button class="btn ghost" id="cache-ttl">⏰ Esperar 10 minutos</button>
+        </div>
+        <div class="cblocks" id="cache-blocks"><span class="muted small">Tocá “1ª pregunta” para empezar.</span></div>
+        <div class="stack" style="gap:7px">
+          <div class="hbar"><span>Costo sin caché</span><div class="track"><div class="fill" style="width:100%;background:var(--red)"></div></div><span>100%</span></div>
+          <div class="hbar"><span>Costo con caché</span><div class="track"><div class="fill" id="cache-fill" style="width:0;background:var(--green)"></div></div><span id="cache-pct">–</span></div>
+          <div class="hbar"><span>Espera sin caché</span><div class="track"><div class="fill" id="lat-no" style="width:0;background:var(--red)"></div></div><span id="lat-no-t">–</span></div>
+          <div class="hbar"><span>Espera con caché</span><div class="track"><div class="fill" id="lat-yes" style="width:0;background:var(--cyan)"></div></div><span id="lat-yes-t">–</span></div>
+        </div>
+        <div><span class="muted small">El estante de Cachi (lo que tiene guardado):</span><div class="shelf" id="cache-shelf"></div></div>
+      </div>
+      <div class="stack">
+        <div class="say rev pop" style="--d:.35s"><div class="char" data-c="cachi" id="cache-char"></div><div class="bubble" id="cache-say"><span class="who">Cachi</span>Mi estante está vacío. ¡Mandá la primera pregunta!</div></div>
+        <div class="note pop" style="--d:.5s"><b>Regla de oro:</b> la caché funciona por <b>prefijo exacto</b>. Si cambia un solo carácter al principio, todo lo que viene después deja de coincidir.</div>
+        <p class="small muted pop" style="--d:.6s">En algunos proveedores, leer de caché cuesta alrededor del 10% del precio normal (en otros, cerca del 50%), y suele haber un tamaño mínimo para cachear. Esta demo usa 10%; los tiempos son ilustrativos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-tips" data-title="Cómo aprovechar la caché" data-block="Bloque 3 · Caché y rendimiento">
+  <div class="wrap">
+    <span class="kicker pop">12 · Diseñar para la caché</span>
+    <h2 class="pop" style="--d:.1s">Lo fijo arriba, lo que cambia abajo</h2>
+    <p class="lead pop" style="--d:.15s">Los dos prompts reciben un request cada pocos segundos. La única diferencia es <b>dónde está el reloj</b>.</p>
+    <div class="grid2">
+      <div class="card stack pop" style="--d:.2s">
+        <div class="row between"><span class="tag" style="color:var(--red);margin:0">❌ ROMPE LA CACHÉ</span><span class="timer">hits <b id="tip-bh" class="c-green">0</b> · misses <b id="tip-bm" class="c-red">0</b></span></div>
+        <div class="stackp" id="tip-bad">
+          <div style="border-color:var(--red)"><span>Hora: <b id="tip-bc" class="c-orange">10:32:00</b> ← cambia siempre</span><em></em></div>
+          <div style="border-color:var(--purple)"><span>System prompt</span><em></em></div>
+          <div style="border-color:var(--orange)"><span>Manual del producto (20.000 tk)</span><em></em></div>
+          <div style="border-color:var(--pink)"><span>Pregunta del usuario</span><em></em></div>
+        </div>
+        <p class="small">Como lo primero cambia en cada request, Cachi nunca encuentra coincidencias.</p>
+      </div>
+      <div class="card stack pop" style="--d:.35s">
+        <div class="row between"><span class="tag" style="color:var(--green);margin:0">✅ AMIGABLE CON LA CACHÉ</span><span class="timer">hits <b id="tip-gh" class="c-green">0</b> · misses <b id="tip-gm" class="c-red">0</b></span></div>
+        <div class="stackp" id="tip-good">
+          <div style="border-color:var(--purple)"><span>System prompt (fijo)</span><em></em></div>
+          <div style="border-color:var(--orange)"><span>Manual del producto (fijo)</span><em></em></div>
+          <div style="border-color:var(--blue)"><span>Historial (sólo crece al final)</span><em></em></div>
+          <div style="border-color:var(--yellow)"><span>Hora: <b id="tip-gc" class="c-orange">10:32:00</b> + pregunta nueva</span><em></em></div>
+        </div>
+        <p class="small">Todo el inicio se repite idéntico: se paga completo sólo lo último.</p>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card pop" style="--d:.5s">
+        <h3>💡 Ejemplo real: chatbot de soporte</h3>
+        <p>Manual de 20.000 tokens, 1.000 preguntas por día, a USD 3 por millón (precio de ejemplo):</p>
+        <ul><li>Sin caché: 20M tokens → <b class="c-red">USD 60/día</b></li><li>Con caché al 10%: <b class="c-green">≈ USD 6/día</b>, y además responde más rápido.</li></ul>
+      </div>
+      <div class="card pop" style="--d:.6s">
+        <h3>🚫 Asesinos silenciosos de la caché</h3>
+        <ul><li>Timestamps o IDs aleatorios al inicio del prompt.</li><li>Cambiar el orden de las herramientas o de los archivos.</li><li>Editar el system prompt “un poquito” entre requests.</li><li>Dejar pasar mucho tiempo entre mensajes (TTL vencido).</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-stream" data-title="Streaming, latencia y TTL" data-block="Bloque 3 · Caché y rendimiento">
+  <div class="wrap">
+    <span class="kicker pop">13 · Velocidad</span>
+    <h2 class="pop" style="--d:.1s">Streaming: no responde más rápido, pero <i>se siente</i> más rápido</h2>
+    <div class="row pop" style="--d:.15s"><button class="btn" id="st-go">Enviar la misma pregunta a los dos ▸</button><span class="muted small">“¿Cómo invierto un string en JS?”</span></div>
+    <div class="grid2 pop" style="--d:.2s">
+      <div class="stack" style="gap:6px"><div class="row between"><b>Sin streaming</b><span class="timer" id="st-t1">primer texto: –</span></div><div class="stream" id="st-a"></div></div>
+      <div class="stack" style="gap:6px"><div class="row between"><b class="c-green">Con streaming</b><span class="timer" id="st-t2">primer token: –</span></div><div class="stream" id="st-b"></div></div>
+    </div>
+    <div class="grid3">
+      <div class="card pop" style="--d:.35s"><h3>⏱ TTFT</h3><p><b>Time To First Token</b>: cuánto tarda en aparecer el primer token. Un prompt largo sin caché lo aumenta. Con <b>cache hit</b>, baja.</p></div>
+      <div class="card pop" style="--d:.45s"><h3>🚀 Tokens por segundo</h3><p>La salida se genera <b>de a un token</b>. Pedir respuestas cortas y precisas es más rápido y más barato.</p></div>
+      <div class="card pop" style="--d:.55s">
+        <div class="ttl">
+          <svg viewBox="0 0 90 90"><circle cx="45" cy="45" r="36" stroke="#221a45" stroke-width="8" fill="none"/><circle id="ttl-ring" cx="45" cy="45" r="36" stroke="#ff9e64" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="226" transform="rotate(-90 45 45)"/><text id="ttl-txt" x="45" y="50" text-anchor="middle" fill="#ff9e64" font-size="15" font-weight="800" font-family="JetBrains Mono">5:00</text></svg>
+          <div class="stack" style="gap:6px"><h3 style="margin:0">⌛ TTL de la caché</h3><p class="small" id="ttl-msg">La caché vence si nadie la usa. Reloj acelerado: probá dejarlo llegar a cero.</p><button class="btn orange" id="ttl-send">Enviar mensaje</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BLOQUE 4 ================= -->
+<section class="slide divider" data-title="Bloque 4 · Programar con IA" data-block="Bloque 4 · Programar con IA" data-div>
+  <div class="wrap">
+    <span class="block-num pop" style="background:linear-gradient(90deg,var(--green),var(--teal))">BLOQUE 4</span>
+    <h1 class="pop" style="--d:.1s"><span class="grad">Programar con IA</span></h1>
+    <p class="lead pop" style="--d:.2s">Prompts, alucinaciones, agentes, MCP, RAG y las buenas prácticas que separan a un dev que dirige de uno que copia y pega.</p>
+    <div class="row pop" style="--d:.35s;gap:16px;align-items:flex-end">
+      <div class="char lg" data-c="osdy"></div>
+      <div class="termwin" style="min-width:290px"><div class="tbar"><i></i><i></i><i></i>cart.test.js</div><div class="tbody"><div class="l"><span class="c-pink">osdy</span>: arreglá el test que falla</div><div class="l"><span class="c-cyan">robo</span>: corriendo npm test…</div><div class="l"><span class="c-orange">robo</span>: encontré el bug en cart.js</div><div class="l"><b>✓ 42 tests passed</b></div></div></div>
+      <div class="char lg" data-c="robot"></div>
+    </div>
+    <ul class="mini-toc pop" style="--d:.5s"><li>14. Prompting</li><li>15. Alucinaciones</li><li>16. Agentes</li><li>17. MCP</li><li>18. RAG y embeddings</li><li>19. Buenas prácticas</li></ul>
+  </div>
+</section>
+
+<section class="slide" data-title="Prompting para código" data-block="Bloque 4 · Programar con IA">
+  <div class="wrap">
+    <span class="kicker pop">14 · Prompting</span>
+    <div class="row between pop" style="--d:.1s"><h2>Si no le das contexto, Robo adivina</h2><button class="btn" id="pr-go">▶ Ver qué genera Robo con cada uno</button></div>
+    <div class="grid2" style="align-items:start">
+      <div class="card stack pop" style="--d:.2s">
+        <span class="tag" style="color:var(--red);margin:0">❌ PROMPT VAGO</span>
+        <div class="prompt">Haceme un login</div>
+        <div class="prompt out" id="pr-bad"></div>
+        <div class="verdict c-red" id="pr-bad-v">✗ Otro framework · ✗ librerías que no usás · ✗ sin validación · ✗ sin tests</div>
+        <div class="say"><div class="char sm" data-c="robot" data-m="think" id="pr-r1"></div><div class="bubble" style="margin-bottom:8px"><span class="who">Robo</span>¿React o Vue? ¿JWT o sesión? Bueno… <b>invento todo</b>.</div></div>
+      </div>
+      <div class="card stack pop" style="--d:.35s">
+        <span class="tag" style="color:var(--green);margin:0">✅ PROMPT CON CONTEXTO</span>
+<div class="prompt"><span class="k">Contexto:</span> React 18 + TypeScript. Ya uso React Hook Form y Zod.
+<span class="k">Tarea:</span> crear el componente LoginForm.
+<span class="k">Requisitos:</span> validar email y contraseña; llamar a authService.login(), que ya existe.
+<span class="k">Restricciones:</span> no agregues librerías nuevas.
+<span class="k">Entregable:</span> componente + test. Antes, contame tu plan.</div>
+        <div class="prompt out" id="pr-good"></div>
+        <div class="verdict c-green" id="pr-good-v">✓ Tu stack · ✓ sin dependencias nuevas · ✓ validación · ✓ con test</div>
+      </div>
+    </div>
+    <div class="chips pop" style="--d:.5s">
+      <span class="chip c-purple">Contexto</span><span class="chip c-blue">Tarea</span><span class="chip c-cyan">Requisitos</span><span class="chip c-orange">Restricciones</span><span class="chip c-green">Formato de salida</span><span class="chip c-yellow">Ejemplos</span><span class="chip c-pink">Pedir el plan primero</span>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Alucinaciones" data-block="Bloque 4 · Programar con IA">
+  <div class="wrap">
+    <span class="kicker pop">15 · Alucinaciones</span>
+    <h2 class="pop" style="--d:.1s">Robo puede inventar con total seguridad</h2>
+    <div class="split" style="align-items:start">
+      <div class="card stack pop" style="--d:.2s">
+        <div class="chat">
+          <div class="msg me">¿Cómo ordeno un array de objetos por fecha en JavaScript?</div>
+          <div class="msg ai">¡Fácil! Usá el método nativo:
+            <span class="fake"><pre>pedidos.sortByDate('fecha');</pre><span class="stamp" id="h-stamp">NO EXISTE</span></span>
+          </div>
+          <div class="msg ai reveal" id="h-fix">✅ Lo correcto:
+<pre>pedidos.sort((a, b) =&gt;
+  new Date(a.fecha) - new Date(b.fecha)
+);</pre></div>
+        </div>
+        <div class="row"><button class="btn red" id="h-check">🔍 Verificar en la documentación</button><button class="btn ghost" id="h-reset">Reiniciar</button></div>
+      </div>
+      <div class="stack">
+        <div class="say rev pop" style="--d:.35s"><div class="char" data-c="robot" id="h-robot"></div><div class="bubble" id="h-say"><span class="who">Robo</span><code>sortByDate</code> suena re real, ¿no? Yo predigo texto <b>plausible</b>, no texto <b>verdadero</b>.</div></div>
+        <div class="note pop" style="--d:.5s"><b>Vida real:</b> el compañero que no estudió pero en el oral responde con una seguridad impresionante.</div>
+      </div>
+    </div>
+    <div class="grid3">
+      <div class="card pop" style="--d:.55s"><h3>🧪 Corré el código</h3><p>Tests y compilador: la prueba más honesta que existe.</p></div>
+      <div class="card pop" style="--d:.65s"><h3>📖 Dale la documentación</h3><p>Pegá la doc oficial en el contexto o usá herramientas que la traigan. Menos adivinanza.</p></div>
+      <div class="card pop" style="--d:.75s"><h3>📦 Ojo con los paquetes</h3><p>Puede inventar nombres de librerías. Hay gente que publica paquetes maliciosos con esos nombres (<i>slopsquatting</i>). Verificá antes de instalar.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="Agentes y herramientas" data-block="Bloque 4 · Programar con IA">
+  <div class="wrap">
+    <span class="kicker pop">16 · Agentes</span>
+    <h2 class="pop" style="--d:.1s">Un agente es un LLM en un loop, con herramientas</h2>
+    <div class="grid2" style="align-items:center">
+      <div class="pop" style="--d:.2s">
+        <div class="loop">
+          <div class="node n0" data-n="0">🧠 Piensa</div>
+          <div class="node n1" data-n="1">🔧 Actúa</div>
+          <div class="node n2" data-n="2">👀 Observa</div>
+          <div class="node n3" data-n="3">✅ Responde</div>
+          <div class="packet" id="ag-packet"></div>
+          <div class="center"><div class="char sm" data-c="robot" id="ag-robot"></div></div>
+        </div>
+      </div>
+      <div class="card stack pop" style="--d:.3s">
+        <div class="row between"><b>Tarea: “arreglá el test que falla”</b><span class="timer" id="ag-ctx">contexto: 8k</span></div>
+        <div class="log" id="ag-log"><div class="t0"><b>OSDY</b>Arreglá el test que falla en el carrito.</div></div>
+        <div class="row"><button class="btn cyan" id="ag-auto">▶ Reproducir</button><button class="btn" id="ag-next">Siguiente paso ▸</button><button class="btn ghost" id="ag-reset">Reiniciar</button></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="note pop" style="--d:.45s"><b>Detalle clave:</b> el LLM <b>no ejecuta nada</b>. Pide “quiero correr <code>npm test</code>” y la app (Claude Code, Cursor, etc.) lo ejecuta y le devuelve el resultado. Esto se llama <b>tool use</b>.</div>
+      <div class="note pop" style="--d:.55s"><b>Y el contexto crece:</b> cada resultado de una herramienta se suma a la mesa. Por eso los agentes consumen muchos tokens, y la caché les viene de maravilla.</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s-mcp" data-title="MCP" data-block="Bloque 4 · Programar con IA">
+  <div class="wrap">
+    <span class="kicker pop">17 · MCP</span>
+    <h2 class="pop" style="--d:.1s">MCP: el USB-C de la inteligencia artificial</h2>
+    <div class="split">
+      <div class="stack pop" style="--d:.2s">
+        <div class="hub" id="hub">
+          <svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none"><g class="flowl" fill="none" stroke-width="1.4">
+            <line x1="50" y1="50" x2="16" y2="14" vector-effect="non-scaling-stroke"/><line x1="50" y1="50" x2="50" y2="7" vector-effect="non-scaling-stroke"/><line x1="50" y1="50" x2="84" y2="14" vector-effect="non-scaling-stroke"/>
+            <line x1="50" y1="50" x2="16" y2="86" vector-effect="non-scaling-stroke"/><line x1="50" y1="50" x2="50" y2="93" vector-effect="non-scaling-stroke"/><line x1="50" y1="50" x2="84" y2="86" vector-effect="non-scaling-stroke"/></g></svg>
+          <div class="plug c-purple" data-p="0" style="left:16%;top:14%">🐙 GitHub</div>
+          <div class="plug c-cyan" data-p="1" style="left:50%;top:7%">🗄️ Base de datos</div>
+          <div class="plug c-green" data-p="2" style="left:84%;top:14%">📖 Docs</div>
+          <div class="plug c-orange" data-p="3" style="left:16%;top:86%">🎫 Tickets</div>
+          <div class="plug c-yellow" data-p="4" style="left:50%;top:93%">🎨 Diseño</div>
+          <div class="plug c-red" data-p="5" style="left:84%;top:86%">🌐 Navegador</div>
+          <div class="packet" id="mcp-packet" style="opacity:0"></div>
+          <div class="center"><div class="char sm" data-c="robot"></div><span class="host">TU APP DE IA</span></div>
+        </div>
+        <div class="caption" id="mcp-cap"><span class="muted">Esperando un pedido…</span></div>
+      </div>
+      <div class="stack">
+        <div class="say rev pop" style="--d:.35s"><div class="char sm" data-c="osdy"></div><div class="bubble"><span class="who">Osdy</span>Antes, cada app de IA necesitaba su propio conector para cada herramienta. Con MCP hay <b>un enchufe estándar</b>.</div></div>
+        <div class="card pop" style="--d:.5s">
+          <ul>
+            <li><b class="c-purple">Host / cliente:</b> la app donde usás la IA.</li>
+            <li><b class="c-cyan">Servidor MCP:</b> expone herramientas y datos (leer issues, consultar la base, buscar documentación).</li>
+            <li><b class="c-green">Model Context Protocol:</b> el idioma común entre los dos.</li>
+          </ul>
+        </div>
+        <div class="note pop" style="--d:.6s"><b>Dos cuidados:</b> cada servidor suma definiciones de herramientas a la ventana de contexto (consume tokens), y puede leer o ejecutar cosas. <b>Instalá sólo servidores de confianza.</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-title="RAG y embeddings" data-block="Bloque 4 · Programar con IA">
+  <div class="wrap">
+    <span class="kicker pop">18 · RAG y embeddings</span>
+    <h2 class="pop" style="--d:.1s">RAG: buscar lo relevante y recién ahí preguntarle a Robo</h2>
+    <div class="split rag" style="align-items:start">
+      <div class="stack pop" style="--d:.2s">
+        <svg id="rag-svg" viewBox="0 0 420 260"></svg>
+        <div class="row">
+          <button class="btn purple" data-q="tarjeta">“¿Cómo pago con tarjeta?”</button>
+          <button class="btn green" data-q="perro">“Mi perro no quiere comer”</button>
+          <button class="btn orange" data-q="auto">“¿Cada cuánto inflo las cubiertas?”</button>
+        </div>
+        <div class="flowsteps" id="rag-flow"><span>1. Pregunta</span><i>→</i><span>2. Embedding</span><i>→</i><span>3. Buscar los más cercanos</span><i>→</i><span>4. Meterlos en el contexto</span><i>→</i><span>5. Robo responde</span></div>
+      </div>
+      <div class="stack">
+        <div class="say rev pop" style="--d:.3s"><div class="char sm" data-c="robot"></div><div class="bubble"><span class="who">Robo</span>Un <b>embedding</b> convierte texto en coordenadas de <b>significado</b>. Lo que significa algo parecido queda cerca en el mapa.</div></div>
+        <div class="card pop" style="--d:.45s"><h3>Llega a mi mesa:</h3><div class="retrieved" id="rag-ret"><span class="muted small">Elegí una pregunta…</span></div></div>
+        <p class="small muted pop" style="--d:.55s">En la realidad son cientos o miles de dimensiones; acá dibujamos sólo 2. Muchos agentes de código también buscan con <code>grep</code> en lugar de embeddings: la idea es la misma, traer sólo lo relevante.</p>
+      </div>
+    </div>
+    <div class="note pop" style="--d:.6s"><b>Vida real:</b> el bibliotecario no lee toda la biblioteca para responderte. Va directo al estante correcto, saca tres libros y te los da.</div>
+  </div>
+</section>
+
+<section class="slide" id="s-best" data-title="Buenas prácticas" data-block="Bloque 4 · Programar con IA">
+  <div class="wrap">
+    <span class="kicker pop">19 · Buenas prácticas</span>
+    <h2 class="pop" style="--d:.1s">Vos dirigís. La IA ejecuta.</h2>
+    <div class="flowsteps pop" id="best-flow" style="--d:.15s;font-size:15px"><span>💡 Idea</span><i>→</i><span>🗺️ Plan</span><i>→</i><span>⌨️ Código</span><i>→</i><span>🧪 Tests</span><i>→</i><span>🔍 Revisás el diff</span><i>→</i><span>✅ Commit</span></div>
+    <div class="split" style="grid-template-columns:1.5fr .5fr">
+      <ul class="checklist">
+        <li class="pop" style="--d:.2s"><b>Entendé el concepto primero.</b> Si no sabés qué pedir, no vas a saber si la respuesta está mal.</li>
+        <li class="pop" style="--d:.3s"><b>Pedí el plan antes del código.</b> Corregir un plan es gratis; corregir 300 líneas, no.</li>
+        <li class="pop" style="--d:.4s"><b>Contexto chico y enfocado.</b> Los archivos relevantes, no el repo entero.</li>
+        <li class="pop" style="--d:.5s"><b>Una conversación por tarea.</b> Mesa limpia, menos ruido y mejor caché.</li>
+        <li class="pop" style="--d:.6s"><b>Tests como red de seguridad.</b> Que la IA los corra y te muestre el resultado.</li>
+        <li class="pop" style="--d:.7s"><b>Leé cada diff.</b> Si no lo entendés, no lo commitees.</li>
+        <li class="pop" style="--d:.8s"><b>Nunca pegues secretos.</b> API keys, contraseñas y datos de clientes, afuera del prompt.</li>
+        <li class="pop" style="--d:.9s"><b>Verificá contra la doc oficial.</b> Sobre todo con APIs y librerías nuevas.</li>
+      </ul>
+      <div class="stack pop" style="--d:.4s;align-items:center">
+        <div class="char lg" data-c="osdy" data-wave></div>
+        <div class="char" data-c="robot"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CIERRE ================= -->
+<section class="slide" data-title="Glosario y cierre" data-block="Cierre">
+  <div class="wrap">
+    <span class="kicker pop">Resumen</span>
+    <h2 class="pop" style="--d:.1s">Tu glosario de bolsillo</h2>
+    <div class="gloss pop" style="--d:.2s">
+      <div><b>LLM</b>Modelo que predice el siguiente token.</div>
+      <div><b>Parámetros</b>Las “perillas” que se ajustaron al entrenar.</div>
+      <div><b>Token</b>Pedacito de texto; unidad de costo y de límite.</div>
+      <div><b>Knowledge cutoff</b>Fecha hasta la que el modelo “leyó”.</div>
+      <div><b>Ventana de contexto</b>La mesa: todo lo que el modelo ve en un request.</div>
+      <div><b>Compactación</b>Resumir lo viejo para liberar espacio.</div>
+      <div><b>Temperatura</b>Qué tanto se arriesga al elegir el token.</div>
+      <div><b>Alucinación</b>Respuesta plausible pero falsa.</div>
+      <div><b>Prompt caching</b>Reusar el prefijo ya procesado.</div>
+      <div><b>Cache hit / miss</b>El prefijo coincide (barato) o no (se procesa todo).</div>
+      <div><b>TTL</b>Cuánto vive la caché sin uso.</div>
+      <div><b>TTFT</b>Tiempo hasta el primer token.</div>
+      <div><b>Streaming</b>Mostrar tokens a medida que salen.</div>
+      <div><b>Tool use</b>El modelo pide usar una herramienta y la app la ejecuta.</div>
+      <div><b>Agente</b>LLM en un loop: pensar, actuar, observar.</div>
+      <div><b>MCP</b>Enchufe estándar entre apps de IA y herramientas.</div>
+      <div><b>Embedding</b>Texto convertido en coordenadas de significado.</div>
+      <div><b>RAG</b>Buscar lo relevante y meterlo en el contexto.</div>
+    </div>
+    <div class="row pop" style="--d:.4s;justify-content:center;gap:6px;align-items:flex-end">
+      <div class="char" data-c="osdy" data-wave></div>
+      <div class="char sm" data-c="tok" data-col="#9ece6a" data-m="wow"></div>
+      <div class="char" data-c="robot" data-wave></div>
+      <div class="char sm" data-c="tok" data-col="#fa96ff"></div>
+      <div class="char" data-c="cachi" data-wave></div>
+    </div>
+    <h2 class="pop" style="--d:.55s;text-align:center">¡Gracias! <span class="grad">Ahora sí: a programar con IA.</span></h2>
+  </div>
+</section>
+
+</main>
+
+<nav class="navbtns"><button class="iconbtn" id="prev" title="Anterior">‹</button><button class="iconbtn" id="next" title="Siguiente">›</button></nav>
+<div class="progress"><div id="bar"></div></div>
+
+<script>
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nf=n=>Math.round(n).toLocaleString('es-AR');
+
+/* ================= ANIMATION RUNTIME =================
+   Every scripted animation waits through w(ms). Leaving the slide (or replaying)
+   bumps EPOCH, so pending waits reject and the sequence stops cleanly. */
+let EPOCH=0;const TIMERS=[];
+function play(fn){const e=EPOCH;const w=ms=>new Promise((res,rej)=>setTimeout(()=>e===EPOCH?res():rej('stop'),ms));return fn(w).catch(err=>{if(err!=='stop')console.error(err);});}
+function replay(fn){EPOCH++;return play(fn);}
+function every(ms,fn){TIMERS.push(setInterval(fn,ms));}
+function stopAll(){EPOCH++;while(TIMERS.length)clearInterval(TIMERS.pop());}
+
+/* ================= CHARACTERS ================= */
+function eyes(x1,x2,y,r,col,m){
+  if(m==='sleep'){const s=`stroke="${col}" stroke-width="2.6" fill="none" stroke-linecap="round"`;return `<g class="eyes"><path d="M${x1-r} ${y} q${r} ${r*.9} ${2*r} 0" ${s}/><path d="M${x2-r} ${y} q${r} ${r*.9} ${2*r} 0" ${s}/></g>`;}
+  const dy=m==='think'?-r*.55:0,rr=m==='wow'?r*1.3:r;
+  return `<g class="eyes"><circle cx="${x1}" cy="${y+dy}" r="${rr}" fill="${col}"/><circle cx="${x2}" cy="${y+dy}" r="${rr}" fill="${col}"/></g>`;
+}
+function mouth(x,y,col,m,w){
+  const s=`stroke="${col}" stroke-width="3" fill="none" stroke-linecap="round"`;
+  switch(m){
+    case 'wow':return `<ellipse cx="${x}" cy="${y+2}" rx="${w*.45}" ry="${w*.55}" fill="${col}"/>`;
+    case 'sad':return `<path d="M${x-w} ${y+5} Q${x} ${y-4} ${x+w} ${y+5}" ${s}/>`;
+    case 'think':return `<path d="M${x-w*.7} ${y+3} L${x+w*.7} ${y}" ${s}/>`;
+    case 'sleep':return `<ellipse cx="${x}" cy="${y+2}" rx="${w*.3}" ry="${w*.3}" fill="${col}"/>`;
+    default:return `<path d="M${x-w} ${y} Q${x} ${y+9} ${x+w} ${y}" ${s}/>`;
+  }
+}
+function extras(m,x,y,fs=24){
+  const f=`font-family="Inter,sans-serif" font-weight="800" font-size="${fs}"`;
+  if(m==='think')return `<text class="qmark" x="${x}" y="${y}" fill="#e0af68" ${f}>?</text>`;
+  if(m==='wow')return `<text class="qmark" x="${x}" y="${y}" fill="#ff9e64" ${f}>!</text>`;
+  if(m==='sleep')return `<text class="zzz" x="${x-fs*.3}" y="${y}" fill="#51e3ff" font-family="Inter,sans-serif" font-weight="800" font-size="${fs*.65}">z z</text>`;
+  if(m==='sad')return `<text class="qmark" x="${x}" y="${y}" font-size="${fs*.75}">💧</text>`;
+  return '';
+}
+const shadow=(cx,cy,rx,ry=5)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#000" opacity=".35"/>`;
+/* Osdy, the "Mapache Coder": vector chibi drawn after the MapacheVtuber model sheet
+   (gray fur, bandit mask, blue glasses, </> headphones, hoodie with pixel logo, ringed tail). */
+const pix=(rows,x,y,u,fill)=>`<path fill="${fill}" d="${rows.map((r,j)=>[...r].map((c,i)=>c==='x'?`M${x+i*u} ${y+j*u}h${u}v${u}h${-u}Z`:'').join('')).join('')}"/>`;
+const OSDY_LOGO=['x.........x','xx.......xx','xxxxxxxxxxx','x.........x','x.xx...xx.x','x....x....x','xx.......xx','.xxxxxxxxx.'];
+const OSDY_CHECK=['x.x','.x.','x.x'];
+const OSDY_MOUTH={
+  happy:'<path d="M120 123v5q-7 9-16 2m16-2q7 9 16 2"/>',
+  sad:'<path d="M120 123v4M108 137q12-10 24 0"/>',
+  think:'<path d="M120 123v5M111 132q10 3 19-3"/>',
+  wow:'<path d="M120 123v3"/><ellipse cx="120" cy="134.5" rx="6.5" ry="7.5" fill="#1a0f2e" stroke="none"/><ellipse cx="120" cy="138.5" rx="4" ry="3" fill="#f7768e" stroke="none"/>',
+  sleep:'<path d="M120 123v4"/><ellipse cx="120" cy="132" rx="3.2" ry="3.6" fill="#1a0f2e" stroke="none"/>'
+};
+function osdyEyes(m){
+  if(m==='sleep')return `<g class="eyes" fill="none" stroke="#d9d0ff" stroke-width="3.4" stroke-linecap="round"><path d="M84 101q9 8 18 0"/><path d="M138 101q9 8 18 0"/></g>`;
+  const wow=m==='wow',rx=wow?10.5:8.5,ry=wow?12:10,px=wow?3.8:4.8,py=wow?4.8:6.4;
+  const dx=m==='think'?2.4:0,dy=m==='think'?-3:m==='sad'?2:0;
+  const eye=x=>`<ellipse cx="${x}" cy="102" rx="${rx}" ry="${ry}" fill="#b68cff"/><ellipse cx="${x+dx}" cy="${102+dy}" rx="${px}" ry="${py}" fill="#1a0f38"/><circle cx="${x+dx-3}" cy="${98+dy}" r="2.6" fill="#fff"/><circle cx="${x+dx+3.2}" cy="${106+dy}" r="1.2" fill="#fff" opacity=".8"/>`;
+  const lids=m==='sad'?'<path fill="#1c1830" d="M80 88h26v6l-26 9ZM160 88h-26v6l26 9Z"/>':'';
+  return `<g class="eyes">${eye(93)}${eye(147)}${lids}</g>`;
+}
+const osdySleeve=d=>`<path d="${d}" fill="none" stroke="#131128" stroke-width="25" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#2b2757" stroke-width="20" stroke-linecap="round"/>`;
+const osdyCup=x=>`<circle cx="${x}" cy="174" r="16" fill="#131128"/><circle cx="${x}" cy="174" r="11.5" fill="#1d1a3c" stroke="#a66bff" stroke-width="3"/><path class="hp" d="M${x-3} 170l-4 4l4 4M${x+3} 170l4 4l-4 4M${x+1.6} 169l-3.2 10" fill="none" stroke="#7df9ff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`;
+const osdyShoe=x=>`<path fill="#8b5cf6" d="M${x-20} 281v-13q0-14 20-14t20 14v13Z"/><rect x="${x-7}" y="256" width="14" height="13" rx="3" fill="#a78bfa"/><path d="M${x-8} 260h16M${x-8} 264.5h16" stroke="#f3e8ff" stroke-width="1.8" stroke-linecap="round"/><path fill="#f1edff" d="M${x-17} 281q0-13 17-13t17 13Z"/><rect x="${x-22}" y="279" width="44" height="9" rx="4.5" fill="#cfc8ea"/><rect x="${x-22}" y="279" width="44" height="6.5" rx="3.25" fill="#fff"/>`;
+const CH={
+  robot:(m,wave)=>`<svg viewBox="0 0 120 150" class="ch ${wave?'waving':''}">${shadow(60,145,34)}<g class="bob">
+    <line x1="60" y1="16" x2="60" y2="34" stroke="#51e3ff" stroke-width="3"/><circle class="light" cx="60" cy="13" r="6" fill="#fa96ff"/>
+    <g class="arm arm-l"><rect x="10" y="100" width="24" height="9" rx="3" fill="#4f7cff"/></g>
+    <g class="arm arm-r"><rect x="86" y="100" width="24" height="9" rx="3" fill="#4f7cff"/></g>
+    <rect x="32" y="94" width="56" height="44" rx="8" fill="#2a2470"/><rect x="32" y="94" width="56" height="8" rx="4" fill="#3b34a0"/><circle class="core" cx="60" cy="118" r="8" fill="#fa96ff"/>
+    <rect x="20" y="32" width="80" height="60" rx="12" fill="#4f7cff"/><rect x="20" y="32" width="80" height="10" rx="6" fill="#7aa2f7"/><rect x="30" y="46" width="60" height="36" rx="8" fill="#0b0820"/>
+    ${eyes(48,72,61,6,'#51e3ff',m)}${mouth(60,72,'#51e3ff',m,9)}${extras(m,98,30)}</g></svg>`,
+  osdy:(m,wave)=>{
+    const pose=wave?'wave':m==='think'?'think':'pocket';
+    const armR=pose==='wave'?`${osdySleeve('M162 178L190 186')}<g class="rwave">${osdySleeve('M190 186L203 152')}<circle cx="196" cy="136" r="4.6" fill="#cfc9e8"/><circle cx="204.5" cy="132" r="4.8" fill="#cfc9e8"/><circle cx="213" cy="137" r="4.6" fill="#cfc9e8"/><circle cx="204" cy="145" r="11" fill="#cfc9e8"/><ellipse cx="204" cy="147" rx="4.6" ry="3.8" fill="#8f89b0"/></g>`
+      :pose==='think'?`${osdySleeve('M162 178Q196 224 148 168')}<circle cx="143" cy="152" r="4.4" fill="#cfc9e8"/><circle cx="146" cy="162" r="10.5" fill="#cfc9e8"/>`:'';
+    return `<svg viewBox="0 0 240 300" class="ch">${shadow(120,290,58,7)}<g class="bob">
+    <g class="tail" fill="none"><path d="M90 240C52 262 14 226 32 170" stroke="#2b2645" stroke-width="40" stroke-linecap="round"/><path d="M90 240C52 262 14 226 32 170" stroke="#aaa5c9" stroke-width="40" stroke-dasharray="15 17" stroke-dashoffset="20"/></g>
+    <rect x="84" y="230" width="30" height="34" rx="7" fill="#16142d"/><rect x="126" y="230" width="30" height="34" rx="7" fill="#16142d"/>
+    <rect x="81" y="241" width="13" height="14" rx="2.5" fill="#262350"/><rect x="146" y="241" width="13" height="14" rx="2.5" fill="#262350"/>
+    ${osdyShoe(97)}${osdyShoe(143)}
+    <path fill="#2b2757" d="M74 170Q120 132 166 170Q150 182 120 182Q90 182 74 170Z"/>
+    <path fill="#221f45" d="M78 178q0-24 22-24h40q22 0 22 24l6 48q1 14-12 14h-72q-13 0-12-14Z"/><path fill="#191736" d="M72.5 229h95q.5 11-11.5 11h-72q-12 0-11.5-11Z"/>
+    <ellipse cx="120" cy="160" rx="34" ry="7" fill="#15132b"/>
+    ${osdySleeve('M80 176C58 186 58 210 90 216')}${pix(OSDY_CHECK,58,189,3.4,'#c678dd')}
+    ${pose==='pocket'?osdySleeve('M160 176C182 186 182 210 150 216')+pix(OSDY_CHECK,171.8,189,3.4,'#c678dd'):''}
+    <path fill="#2b2757" d="M94 200h52q4 0 5 4l6 20q1 4-3 4h-68q-4 0-3-4l6-20q1-4 5-4Z"/><path d="M90 204l-6 20M150 204l6 20" stroke="#15132b" stroke-width="2.5" stroke-linecap="round"/>
+    ${pix(OSDY_LOGO,109,178,2,'#c678dd')}
+    <path d="M106 160q-4 16-3 30M134 160q4 16 3 30" fill="none" stroke="#c678dd" stroke-width="3" stroke-linecap="round"/><path d="M103 190v6M137 190v6" stroke="#ecc8ff" stroke-width="3.6" stroke-linecap="round"/>
+    <path d="M82 162Q84 150 96 148M158 162Q156 150 144 148" fill="none" stroke="#131128" stroke-width="8" stroke-linecap="round"/>${osdyCup(82)}${osdyCup(158)}
+    <path fill="#e9e5f9" d="M46 80C34 56 38 26 54 20C70 18 90 34 98 54Z"/><path fill="#2b2545" d="M54 70C46 54 48 36 57 31C68 31 80 42 86 54Z"/>
+    <path fill="#e9e5f9" d="M194 80C206 56 202 26 186 20C170 18 150 34 142 54Z"/><path fill="#2b2545" d="M186 70C194 54 192 36 183 31C172 31 160 42 154 54Z"/>
+    <path fill="#ece8fb" d="M120 40C150 40 178 52 188 80C192 92 202 100 212 108L200 114L206 128C196 142 164 154 120 154C76 154 44 142 34 128L40 114L28 108C38 100 48 92 52 80C62 52 90 40 120 40Z"/>
+    <path fill="#9590b5" d="M120 40C150 40 178 52 188 80C192 92 202 100 212 108L196 107C178 99 150 101 120 105C90 101 62 99 44 107L28 108C38 100 48 92 52 80C62 52 90 40 120 40Z"/>
+    <g fill="#1c1830" stroke="#f3f0ff" stroke-width="12" stroke-linejoin="round" paint-order="stroke"><path d="M114 92C104 80 78 78 62 92C52 100 44 112 46 122C60 126 80 120 96 119C108 118 115 110 115 100Z"/><path d="M126 92C136 80 162 78 178 92C188 100 196 112 194 122C180 126 160 120 144 119C132 118 125 110 125 100Z"/></g>
+    <path fill="#7d789f" d="M108 42Q120 37 132 42L125 98Q120 104 115 98Z"/><path fill="#7d789f" d="M110 44L113 31L118 40L122 27L127 40L132 32L131 45Z"/>
+    <ellipse cx="120" cy="128" rx="25" ry="17" fill="#fbfaff"/>
+    <path fill="#15111f" d="M110 114Q120 108 130 114Q129 122 120 124Q111 122 110 114Z"/><ellipse cx="116.5" cy="114.5" rx="3" ry="1.4" fill="#fff" opacity=".35"/>
+    <g fill="none" stroke="#1a0f2e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${OSDY_MOUTH[m]||OSDY_MOUTH.happy}</g>
+    ${osdyEyes(m)}
+    <g fill="#7aa2f7" fill-opacity=".13" stroke="#5b7cff" stroke-width="4" stroke-linejoin="round"><rect x="71" y="85" width="43" height="32" rx="9"/><rect x="126" y="85" width="43" height="32" rx="9"/></g>
+    <path d="M114 97Q120 92 126 97M71 96L50 90M169 96L190 90" fill="none" stroke="#5b7cff" stroke-width="4" stroke-linecap="round"/><path d="M77 95l7-6M132 95l7-6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>
+    ${armR}${extras(m,204,48,42)}</g></svg>`;
+  },
+  cachi:(m,wave)=>`<svg viewBox="0 0 120 150" class="ch ${wave?'waving':''}">${shadow(60,145,34)}<g class="bob">
+    <g class="arm arm-l"><rect x="8" y="88" width="22" height="9" rx="3" fill="#e0af68"/></g>
+    <g class="arm arm-r"><rect x="90" y="88" width="22" height="9" rx="3" fill="#e0af68"/></g>
+    <rect x="26" y="20" width="68" height="120" rx="8" fill="#ff9e64"/><rect x="26" y="20" width="68" height="8" rx="4" fill="#ffc29e"/><rect x="34" y="32" width="52" height="42" rx="6" fill="#0b0820"/>
+    ${eyes(50,70,48,5,'#ff9e64',m)}${mouth(60,60,'#ff9e64',m,8)}
+    <rect x="34" y="82" width="52" height="23" rx="4" fill="#e0af68"/><rect x="52" y="91" width="16" height="5" rx="2" fill="#0b0820"/>
+    <rect x="34" y="109" width="52" height="23" rx="4" fill="#e0af68"/><rect x="52" y="118" width="16" height="5" rx="2" fill="#0b0820"/>
+    ${extras(m,94,20)}</g></svg>`,
+  tok:(m,wave,col)=>`<svg viewBox="0 0 60 72" class="ch">${shadow(30,68,18,3)}<g class="bob">
+    <rect x="14" y="58" width="8" height="8" rx="2" fill="${col}"/><rect x="38" y="58" width="8" height="8" rx="2" fill="${col}"/>
+    <rect x="6" y="10" width="48" height="50" rx="8" fill="${col}"/><rect x="6" y="10" width="48" height="8" rx="4" fill="#fff" opacity=".28"/>
+    ${eyes(22,38,32,4,'#160c35',m)}${mouth(30,42,'#160c35',m,7)}</g></svg>`
+};
+function drawChar(el){el.innerHTML=CH[el.dataset.c](el.dataset.m||'happy',el.hasAttribute('data-wave'),el.dataset.col||'#51e3ff');}
+function setMood(el,m){if(el.dataset.m!==m){el.dataset.m=m;drawChar(el);}}
+function say(id,who,html){const b=$(id);b.innerHTML=`<span class="who">${who}</span>${html}`;b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');Voice.bubble(b);}
+$$('[data-c]').forEach(drawChar);
+
+/* ================= AUDIO: character voices + background music =================
+   Browsers block audio until the first user gesture, so nothing plays before unlock().
+   Voices use the browser's speech synthesis (it can read the bubbles built at runtime);
+   the music is synthesized with Web Audio, so the deck stays a single file. */
+const pref=(k,d)=>{try{const v=localStorage.getItem('osdy-'+k);return v===null?d:v==='1';}catch(e){return d;}};
+const savePref=(k,v)=>{try{localStorage.setItem('osdy-'+k,v?'1':'0');}catch(e){}};
+let unlocked=false;
+
+const mtof=m=>440*2**((m-69)/12);
+const SONG={step:60/84/4,
+  /* [bass note, arpeggio notes] per bar, as MIDI numbers */
+  chords:[[45,[57,60,64,67]],[41,[53,57,60,64]],[48,[55,60,64,67]],[43,[55,59,62,67]],
+          [45,[57,60,64,67]],[41,[53,57,60,64]],[50,[53,57,60,62]],[40,[55,59,64,67]]],
+  arp:[0,1,2,3,2,1,2,3],
+  lead:{4:[[0,76],[6,74],[8,72]],5:[[0,72],[4,69],[10,72]],6:[[0,74],[6,72],[8,69]],7:[[0,71],[4,67],[8,64]]}};
+const Music={
+  on:pref('music',true),ctx:null,timer:0,step:0,next:0,VOL:1.1,
+  init(){
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
+    const c=this.ctx=new AC();
+    this.master=c.createGain();this.master.gain.value=0;this.master.connect(c.destination);
+    this.bus=c.createGain();this.bus.connect(this.master);
+    this.lp=c.createBiquadFilter();this.lp.type='lowpass';this.lp.frequency.value=1300;this.lp.connect(this.bus);
+    const delay=c.createDelay(1),fb=c.createGain(),wet=c.createGain();
+    delay.delayTime.value=SONG.step*3;fb.gain.value=.28;wet.gain.value=.22;
+    this.bus.connect(delay);delay.connect(fb);fb.connect(delay);delay.connect(wet);wet.connect(this.master);
+    return true;
+  },
+  note(type,m,t,dur,g,att=.01){
+    const c=this.ctx,o=c.createOscillator(),a=c.createGain();
+    o.type=type;o.frequency.value=mtof(m);
+    a.gain.setValueAtTime(0,t);a.gain.linearRampToValueAtTime(g,t+att);a.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(a);a.connect(type==='square'?this.lp:this.bus);o.start(t);o.stop(t+dur+.05);
+  },
+  playStep(i,t){
+    const bar=i>>4,s=i&15,[bass,ch]=SONG.chords[bar];
+    if(s===0){this.note('sine',ch[0],t,SONG.step*16,.035,.4);this.note('sine',ch[2],t,SONG.step*16,.03,.4);}
+    if(s===0||s===8)this.note('triangle',bass,t,.9,.16);
+    if(s===6)this.note('triangle',bass,t,.3,.08);
+    if(s%2===0)this.note('square',ch[SONG.arp[s/2]],t,.26,.035);
+    (SONG.lead[bar]||[]).forEach(([ls,m])=>{if(ls===s)this.note('triangle',m,t,.7,.06);});
+  },
+  pump(){
+    const c=this.ctx;if(c.state!=='running')return;
+    if(this.next<c.currentTime)this.next=c.currentTime+.05;
+    while(this.next<c.currentTime+.35){this.playStep(this.step,this.next);this.next+=SONG.step;this.step=(this.step+1)%(SONG.chords.length*16);}
+  },
+  /* Background level: silent when off, lowered while a character is talking. */
+  level(){
+    if(!this.ctx)return;
+    const v=this.on?(Voice.cur?this.VOL*.35:this.VOL):0;
+    this.master.gain.setTargetAtTime(v,this.ctx.currentTime,.15);
+  },
+  start(){
+    if(!this.on||!unlocked||this.timer)return;
+    if(!this.ctx&&!this.init())return;
+    this.ctx.resume();this.timer=setInterval(()=>this.pump(),90);this.level();
+  },
+  stop(){
+    clearInterval(this.timer);this.timer=0;this.level();
+    setTimeout(()=>{if(!this.timer&&this.ctx)this.ctx.suspend();},600);
+  },
+  toggle(){this.on=!this.on;savePref('music',this.on);this.on?this.start():this.stop();this.paint();},
+  paint(){const b=$('#musicbtn');b.classList.toggle('off',!this.on);b.setAttribute('aria-pressed',this.on);}
+};
+document.addEventListener('visibilitychange',()=>{
+  if(!Music.ctx||!Music.timer)return;
+  document.hidden?Music.ctx.suspend():Music.ctx.resume();
+});
+
+/* One voice profile per character, so they are recognizable by ear.
+   `names` lists preferred system voices (first one installed wins); without a match the
+   character falls back to the default Spanish voice, shifted only by pitch and rate. */
+const VOX={robo:{pitch:.8,rate:.96,names:['Rocko','Grandpa','Reed']},osdy:{pitch:1,rate:1.04,names:['Eddy','Reed','Diego','Juan']},
+  cachi:{pitch:.85,rate:.92},tok:{pitch:1.8,rate:1.15}};
+const voxFor=who=>{const k=who.toLowerCase();return k.includes('token')?VOX.tok:k.includes('cachi')?VOX.cachi:k.includes('osdy')?VOX.osdy:VOX.robo;};
+const Voice={
+  on:pref('voice',true),ok:'speechSynthesis' in window&&'SpeechSynthesisUtterance' in window,
+  voice:null,queue:[],cur:null,wait:0,guard:0,last:new Map(),
+  pickVoice(){
+    const order=['es-ar','es-419','es-mx','es-us','es-es'];
+    const score=v=>{const r=order.indexOf(v.lang.replace('_','-').toLowerCase());
+      return (r<0?9:r)*10-(/natural|premium|enhanced|mejorad|google/i.test(v.name)?5:0);};
+    const es=speechSynthesis.getVoices().filter(v=>/^es([-_]|$)/i.test(v.lang)).sort((a,b)=>score(a)-score(b));
+    this.voice=es[0]||null;
+    Object.values(VOX).forEach(p=>{
+      p.voice=null;
+      for(const n of p.names||[]){const v=es.find(v=>v.name.startsWith(n));if(v){p.voice=v;break;}}
+    });
+  },
+  /* What gets read aloud: the text without the speaker label, with symbols a voice cannot pronounce replaced. */
+  text(el){
+    const src=el.matches('.bubble')?el.cloneNode(true):el.querySelector('p');if(!src)return '';
+    $$('.who',src).forEach(n=>n.remove());
+    return src.textContent.replace(/\p{Extended_Pictographic}|️/gu,'').replace(/·/g,' punto ').replace(/≠/g,' no es igual a ')
+      .replace(/(\d)k\b/g,'$1 mil').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[“”"]/g,'').replace(/\s+/g,' ').trim();
+  },
+  /* Queue a bubble (or a cast card). A newer line for the same bubble replaces the pending one,
+     so a fast animation never piles up speech; the line being spoken is allowed to finish. */
+  bubble(el){
+    if(!this.ok||!this.on||!unlocked||!el.closest('.slide.active')||!el.getClientRects().length)return;
+    const who=(el.querySelector('.who,h3')||{}).textContent||'',text=this.text(el);if(!text)return;
+    if(this.cur&&this.cur.el===el&&this.cur.text===text)return;
+    const i=this.queue.findIndex(q=>q.el===el);
+    if(i>=0)this.queue[i]={el,who,text};
+    else if(this.last.get(el)===text&&!(this.cur&&this.cur.el===el))return;
+    else this.queue.push({el,who,text});
+    this.pump();
+  },
+  slide(s){$$('.bubble,.cast .card',s).forEach(el=>this.bubble(el));},
+  pump(){
+    if(this.cur||this.wait||!this.queue.length)return;
+    const it=this.queue.shift(),u=new SpeechSynthesisUtterance(it.text),p=voxFor(it.who);
+    if(!this.voice)this.pickVoice();
+    const v=p.voice||this.voice;
+    if(v)u.voice=v;
+    u.lang=v?v.lang:'es-AR';u.pitch=p.pitch;u.rate=p.rate;
+    it.u=u;this.cur=it;this.last.set(it.el,it.text);it.el.classList.add('talking');Music.level();
+    const done=()=>{
+      if(this.cur!==it)return;
+      clearTimeout(this.guard);this.cur=null;it.el.classList.remove('talking');Music.level();
+      this.wait=setTimeout(()=>{this.wait=0;this.pump();},220);
+    };
+    u.onend=done;u.onerror=done;
+    /* Some engines never fire onend; do not let one lost event silence the rest of the deck. */
+    this.guard=setTimeout(()=>{if(this.cur===it){speechSynthesis.cancel();done();}},4000+it.text.length*130);
+    speechSynthesis.speak(u);
+  },
+  stop(){
+    this.queue=[];this.last.clear();clearTimeout(this.guard);clearTimeout(this.wait);this.wait=0;
+    if(this.cur){this.cur.el.classList.remove('talking');this.cur=null;}
+    if(this.ok){
+      speechSynthesis.cancel();
+      /* speak() right after cancel() is dropped by some browsers: leave a short gap. */
+      this.wait=setTimeout(()=>{this.wait=0;this.pump();},120);
+    }
+    Music.level();
+  },
+  toggle(){if(!this.ok)return;this.on=!this.on;savePref('voice',this.on);this.stop();if(this.on)this.slide(slides[cur]);this.paint();},
+  paint(){const b=$('#voicebtn');b.hidden=!this.ok;b.classList.toggle('off',!this.on);b.setAttribute('aria-pressed',this.on);}
+};
+if(Voice.ok)speechSynthesis.addEventListener&&speechSynthesis.addEventListener('voiceschanged',()=>Voice.pickVoice());
+function unlock(e){
+  if(unlocked||(e.type==='keydown'&&/^(Shift|Control|Alt|Meta|Escape)$/.test(e.key)))return;
+  unlocked=true;Music.start();
+  /* If this gesture did not change slide, read the one already on screen. */
+  setTimeout(()=>{if(!Voice.cur&&!Voice.queue.length)Voice.slide(slides[cur]);},0);
+}
+window.addEventListener('pointerdown',unlock,true);window.addEventListener('keydown',unlock,true);
+$('#voicebtn').onclick=()=>Voice.toggle();$('#musicbtn').onclick=()=>Music.toggle();
+Voice.paint();Music.paint();
+window.addEventListener('pagehide',()=>{if(Voice.ok)speechSynthesis.cancel();});
+
+/* ================= NAVIGATION ================= */
+const slides=$$('.slide');let cur=0;const ENTER={};
+slides.forEach((s,i)=>{const li=document.createElement('li');if(s.hasAttribute('data-div'))li.className='div';li.innerHTML=`<span>${i+1}</span>${esc(s.dataset.title)}`;li.onclick=()=>{go(i);toggleToc(false);};$('#toclist').appendChild(li);});
+function go(n){
+  n=Math.max(0,Math.min(slides.length-1,n));cur=n;stopAll();Voice.stop();
+  slides.forEach((s,i)=>{s.classList.toggle('active',i===n);s.classList.toggle('past',i<n);});
+  slides[n].scrollTop=0;
+  $('#bar').style.width=((n+1)/slides.length*100)+'%';
+  $('#counter').textContent=`${n+1} / ${slides.length}`;
+  $('#blocktag').textContent=slides[n].dataset.block;
+  $$('#toclist li').forEach((li,i)=>li.classList.toggle('cur',i===n));
+  history.replaceState(null,'','#'+(n+1));
+  Voice.slide(slides[n]);
+  const fn=ENTER[slides[n].id];if(fn)fn();
+}
+function toggleToc(force){$('#toc').classList.toggle('open',force);}
+$('#prev').onclick=()=>go(cur-1);$('#next').onclick=()=>go(cur+1);$('#tocbtn').onclick=()=>toggleToc();
+document.addEventListener('keydown',e=>{
+  const t=e.target;if(t.closest&&t.closest('input,textarea,select'))return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||(e.key===' '&&!t.closest('button'))){e.preventDefault();go(cur+1);}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1);}
+  else if(e.key==='Home')go(0);else if(e.key==='End')go(slides.length-1);
+  else if(e.key==='i'||e.key==='I')toggleToc();else if(e.key==='v'||e.key==='V')Voice.toggle();else if(e.key==='m'||e.key==='M')Music.toggle();else if(e.key==='Escape')toggleToc(false);
+});
+let tx=null,ty=null;
+document.addEventListener('touchstart',e=>{if(e.target.closest('input,textarea'))return;tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.5)go(cur+(dx<0?1:-1));tx=null;},{passive:true});
+
+/* ================= LAYERS: rotating spotlight ================= */
+ENTER['s-layers']=()=>{
+  const rings=$$('#s-layers .ring'),layers=$$('#s-layers .layer');let k=-1;
+  const tick=()=>{k=(k+1)%4;rings.forEach((r,i)=>r.classList.toggle('hot',i===k));layers.forEach((l,i)=>l.classList.toggle('hot',i===k));};
+  TIMERS.push(setTimeout(()=>{tick();every(2000,tick);},1600));
+};
+
+/* ================= TOKENIZER (approximation) ================= */
+const COMMON=new Set(('the and for this that what with you are how want to learn programming artificial intelligence hello world function return const let is of in it i '+
+  'hola que de la el en con para por los las una un como más quiero a y me es lo se').split(/\s+/));
+const PRESETS={
+  es:'Hola, ¿cómo estás? Quiero aprender a programar con inteligencia artificial.',
+  en:'Hello, how are you? I want to learn programming with artificial intelligence.',
+  code:'function sumar(a, b) {\n  return a + b;\n}',
+  emoji:'Me encanta programar 🚀🔥 con IA 🤖'
+};
+function tokenize(text){
+  const out=[];const re=/\s*[\p{L}\p{M}\p{N}_]+|\s*\p{Extended_Pictographic}️?|\s*[^\s\p{L}\p{M}\p{N}_]|\s+/gu;
+  for(const mt of text.matchAll(re)){
+    const p=mt[0];let lead=p.match(/^\s*/)[0];const core=p.slice(lead.length);
+    if(!core){out.push({t:p,n:1});continue;}
+    if(lead.includes('\n')){out.push({t:lead,n:1});lead='';}
+    if(/\p{Extended_Pictographic}/u.test(core)){out.push({t:lead+core,n:3});continue;}
+    if(core.length<=4||COMMON.has(core.toLowerCase())){out.push({t:lead+core,n:1});continue;}
+    let i=0,first=true;
+    while(i<core.length){const rest=core.length-i;const n=rest<=5?rest:(rest===6?3:4);out.push({t:(first?lead:'')+core.slice(i,i+n),n:1});first=false;i+=n;}
+  }
+  return out;
+}
+/* Fake but stable ID: real tokenizers map each token to a fixed number in their vocabulary. */
+function tokId(t){let h=7;for(const c of t)h=(h*31+c.codePointAt(0))%49999;return h+100;}
+let tokAsIds=false;
+function tokRender(){
+  const text=$('#tok-input').value;const toks=tokenize(text);
+  $('#tok-out').innerHTML=toks.map((t,i)=>{
+    const vis=tokAsIds?tokId(t.t):esc(t.t).replace(/ /g,'<i class="sp">·</i>').replace(/\n/g,'<i class="sp">↵</i>\n');
+    return `<span class="tk k${i%6}" style="animation-delay:${Math.min(i*18,600)}ms">${vis}${t.n>1?`<sup>×${t.n}</sup>`:''}</span>${tokAsIds?' ':''}`;
+  }).join('')||'<span class="muted">Escribí algo…</span>';
+  const n=toks.reduce((a,t)=>a+t.n,0),chars=[...text].length;
+  $('#st-chars').textContent=chars;$('#st-words').textContent=text.trim()?text.trim().split(/\s+/).length:0;
+  $('#st-toks').textContent=n;$('#st-ratio').textContent=n?(chars/n).toFixed(1):0;
+}
+$('#tok-input').value=PRESETS.es;$('#tok-input').addEventListener('input',tokRender);
+$$('[data-preset]').forEach(b=>b.onclick=()=>{$('#tok-input').value=PRESETS[b.dataset.preset];tokRender();});
+$('#tok-ids').onclick=()=>{tokAsIds=!tokAsIds;$('#tok-ids').textContent=tokAsIds?'Ver como texto':'Ver como números';tokRender();};
+tokRender();
+
+/* ================= PIPELINE ================= */
+const PIPE={prompt:'¿Cuál es la capital de Francia?',out:[
+  {t:'La',c:[['La',.71],['París',.18],['Es',.11]]},
+  {t:' capital',c:[['capital',.83],['ciudad',.12],['respuesta',.05]]},
+  {t:' es',c:[['es',.77],['de',.20],['francesa',.03]]},
+  {t:' París',c:[['París',.96],['Lyon',.03],['Madrid',.01]]},
+  {t:'.',c:[['.',.88],[',',.09],['!',.03]]}
+]};
+(function netBuild(){
+  const cols=[3,5,5,3],X=[14,60,106,152],H=120;let lines='',nodes='';
+  const pos=cols.map((n,i)=>Array.from({length:n},(_,j)=>[X[i],H/(n+1)*(j+1)]));
+  for(let i=0;i<3;i++)pos[i].forEach(a=>pos[i+1].forEach(b=>{lines+=`<line class="syn" style="animation-delay:-${(Math.random()*.4).toFixed(2)}s" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;}));
+  pos.flat().forEach(p=>{nodes+=`<circle class="neu" cx="${p[0]}" cy="${p[1]}" r="5"/>`;});
+  $('#pipe-net').innerHTML=`<svg viewBox="0 0 166 120">${lines}${nodes}</svg>`;
+})();
+async function pipeRun(w){
+  const st=$$('#pipe .stage'),on=i=>st.forEach((s,j)=>s.classList.toggle('on',j===i));
+  const robot=$('#pipe-robot'),net=$('#pipe-net');let ans='';
+  $('#pipe-ans').innerHTML=`<span class="q">${esc(PIPE.prompt)}</span>`;$('#pipe-probs').innerHTML='';$('#pipe-count').textContent='';net.classList.remove('fire');
+  ['#pipe-text','#pipe-toks','#pipe-ids'].forEach(id=>$(id).innerHTML='');
+  say('#pipe-say','Robo','Mirá el recorrido: por cada token que escribo, <b>doy toda la vuelta de nuevo</b>.');
+  await w(900);
+  for(let k=0;k<PIPE.out.length;k++){
+    const d=k===0?1000:k===1?520:300,o=PIPE.out[k];
+    setMood(robot,'think');
+    on(0);$('#pipe-text').innerHTML=esc(PIPE.prompt)+(ans?` <b class="c-pink">${esc(ans)}</b>`:'');await w(d);
+    const toks=tokenize(PIPE.prompt+(ans?' '+ans:'')).slice(-8);
+    on(1);$('#pipe-toks').innerHTML=toks.map((t,i)=>`<span class="tk k${i%6}">${esc(t.t.trim())}</span>`).join(' ');await w(d);
+    on(2);$('#pipe-ids').innerHTML=toks.map(t=>`<span>${tokId(t.t)}</span>`).join('');await w(d);
+    on(3);net.classList.add('fire');await w(d+300);net.classList.remove('fire');
+    on(4);$('#pipe-probs').innerHTML=o.c.map(([t,p])=>`<div class="prob"><span>${esc(t)}</span><div class="track"><div class="fill" data-p="${p}"></div></div><span>${Math.round(p*100)}%</span></div>`).join('');
+    await w(50);$$('#pipe-probs .fill').forEach(f=>f.style.width=(f.dataset.p*100)+'%');await w(d*.8+200);
+    $$('#pipe-probs .prob').forEach((r,i)=>r.classList.add(i===0?'win':'lose'));
+    ans+=o.t;setMood(robot,'happy');
+    $('#pipe-ans').innerHTML=`<span class="q">${esc(PIPE.prompt)}</span> <span class="a">${esc(ans)}</span><span class="cursor"></span>`;
+    $('#pipe-count').textContent=`vuelta ${k+1} de ${PIPE.out.length}`;
+    if(k===0)say('#pipe-say','Robo','Una vuelta completa… para escribir <b>una sola palabra</b>. Ahora acelero.');
+    await w(d*.7);
+  }
+  on(-1);say('#pipe-say','Robo','5 tokens, 5 vueltas. Una respuesta de 500 tokens son <b>500 vueltas</b>: por eso la salida es lo más lento y lo más caro.');
+}
+ENTER['s-pipe']=()=>play(pipeRun);$('#pipe-replay').onclick=()=>replay(pipeRun);
+
+/* ================= NEXT TOKEN ================= */
+const NT={base:'Hoy hace mucho frío, así que me voy a tomar un',steps:[
+  [['café',.52],['té',.24],['mate',.17],['chocolate',.05],['helado',.02]],
+  [['caliente',.41],['bien',.33],['con',.18],['.',.08]],
+  [['.',.48],['con',.27],['y',.19],['para',.06]]
+],i:0,words:[],busy:false};
+function ntDraw(){
+  $('#nt-sentence').innerHTML=esc(NT.base)+NT.words.map(w=>`<span class="new">${w==='.'?'':' '}${esc(w)}</span>`).join('')+'<span class="cursor"></span>';
+  const st=NT.steps[NT.i],box=$('#nt-probs');
+  if(!st){box.innerHTML='<p class="c-green">✔ Fin: el modelo eligió el punto y la frase terminó.</p>';$('#nt-go').disabled=true;return;}
+  $('#nt-go').disabled=false;
+  box.innerHTML=st.map(([t,p])=>`<div class="prob"><span>"${esc(t)}"</span><div class="track"><div class="fill" data-p="${p}"></div></div><span>${Math.round(p*100)}%</span></div>`).join('');
+  setTimeout(()=>$$('.fill',box).forEach(f=>f.style.width=(f.dataset.p*100)+'%'),60);
+}
+$('#nt-go').onclick=()=>{
+  if(NT.busy||NT.i>=NT.steps.length)return;NT.busy=true;
+  play(async w=>{
+    try{
+      const robot=$('#nt-robot');setMood(robot,'think');
+      say('#nt-say','Robo','Mmm… calculando probabilidades para <b>todos</b> los tokens que conozco…');
+      await w(700);
+      const st=NT.steps[NT.i];let best=0;st.forEach((o,k)=>{if(o[1]>st[best][1])best=k;});
+      $$('#nt-probs .prob').forEach((r,k)=>r.classList.add(k===best?'win':'lose'));
+      await w(800);
+      NT.words.push(st[best][0]);NT.i++;setMood(robot,'happy');
+      say('#nt-say','Robo',`Elegí <b>“${esc(st[best][0])}”</b> (${Math.round(st[best][1]*100)}%). Ahora eso es parte del texto y vuelvo a predecir.`);
+      ntDraw();
+    }finally{NT.busy=false;}
+  });
+};
+$('#nt-reset').onclick=()=>{NT.i=0;NT.words=[];setMood($('#nt-robot'),'happy');ntDraw();};
+ENTER['s-next']=()=>{NT.busy=false;ntDraw();};
+
+/* ================= TRAINING ================= */
+$('#tr-knobs').innerHTML='<div class="knob"></div>'.repeat(10);
+const TR=[['avión',92,'sad','Dije <b>“avión”</b>. Nada que ver. Me corrigen y muevo las perillas.'],
+  ['perro',61,'think','<b>“perro”</b>… mejor, al menos es del tema. Ajusto otra vez.'],
+  ['piso',24,'think','<b>“piso”</b>. ¡Casi! Un toquecito más a las perillas.'],
+  ['sofá',3,'happy','<b>“sofá”</b> ✓ ¡Acerté! Ahora repetí esto con billones de frases de todo internet.']];
+async function trainRun(w){
+  const g=$('#tr-guess'),robot=$('#tr-robot'),knobs=$$('#tr-knobs .knob');let pts=[];
+  g.textContent='___';g.className='guess';$('#tr-line').setAttribute('points','');$('#tr-dots').innerHTML='';$('#tr-loss').textContent='–';$('#tr-try').textContent='0';
+  knobs.forEach(k=>k.style.transform='rotate(0deg)');setMood(robot,'happy');
+  say('#tr-say','Robo','Me tapan una palabra, adivino, me corrigen y muevo las perillas. Así, billones de veces.');
+  await w(1400);
+  for(let i=0;i<TR.length;i++){
+    const [word,loss,mood,txt]=TR[i];
+    setMood(robot,'think');g.className='guess';g.textContent='…';
+    knobs.forEach(k=>k.style.transform=`rotate(${Math.round(Math.random()*300-150)}deg)`);
+    await w(900);
+    g.textContent=word;g.className='guess '+(loss<10?'good':'bad');
+    $('#tr-loss').textContent=loss+'%';$('#tr-try').textContent=i+1;
+    const x=30+i*62,y=100-loss*.85;pts.push(`${x},${y}`);
+    $('#tr-line').setAttribute('points',pts.join(' '));
+    $('#tr-dots').insertAdjacentHTML('beforeend',`<circle cx="${x}" cy="${y}" r="5" fill="${loss<10?'#9ece6a':'#fa96ff'}"/><text x="${x}" y="${y-9}" fill="#cdc3ea" font-size="9" font-family="JetBrains Mono" text-anchor="middle">${loss}%</text>`);
+    setMood(robot,mood);say('#tr-say','Robo',txt);
+    await w(1700);
+  }
+}
+ENTER['s-train']=()=>play(trainRun);$('#train-replay').onclick=()=>replay(trainRun);
+
+/* ================= COST ================= */
+function money(v){return '$'+(v<1?v.toFixed(4):v.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}));}
+function calc(){
+  const g=id=>Math.max(0,parseFloat($(id).value)||0);
+  const r=(g('#c-in')*g('#c-pin')+g('#c-out')*g('#c-pout'))/1e6;
+  $('#c-r1').textContent=money(r);$('#c-rd').textContent=money(r*g('#c-req'));$('#c-rm').textContent=money(r*g('#c-req')*30);
+}
+$$('.calc input').forEach(i=>i.addEventListener('input',calc));calc();
+
+/* ================= TAXIMETER ================= */
+const TX_MSGS=['Revisá este archivo','¿Por qué falla el login?','Mostrame la función','Agregá validación','Ahora con Zod','Escribí el test','El test falla, arreglalo','Resumime los cambios'];
+async function taxiRun(w){
+  const BASE=6000,U=300,A=500,N=TX_MSGS.length,chart=$('#tx-chart'),chat=$('#tx-chat');
+  const maxIn=BASE+(N-1)*(U+A)+U,px=tk=>(tk/maxIn*186).toFixed(1);
+  chart.innerHTML='';chat.innerHTML='';['#tx-in','#tx-typed','#tx-total'].forEach(id=>$(id).textContent='0');$('#tx-x').textContent='×1';
+  let total=0,hist=0;await w(900);
+  for(let n=1;n<=N;n++){
+    const input=BASE+hist+U;total+=input;
+    chat.insertAdjacentHTML('beforeend',`<div class="u">${n}. ${esc(TX_MSGS[n-1])}</div>`);
+    while(chat.children.length>6)chat.firstChild.remove();
+    chart.insertAdjacentHTML('beforeend',`<div class="tcol"><span>#${n}</span><i class="b" style="height:${px(BASE)}px"></i><i class="h" style="height:${px(hist)}px"></i><i class="n" style="height:${px(U)}px"></i></div>`);
+    $('#tx-in').textContent=nf(input);$('#tx-typed').textContent=nf(n*U);$('#tx-total').textContent=nf(total);$('#tx-x').textContent='×'+Math.round(total/(n*U));
+    await w(520);
+    chat.insertAdjacentHTML('beforeend','<div class="a">Robo responde (500 tk)</div>');
+    while(chat.children.length>6)chat.firstChild.remove();
+    hist+=U+A;await w(520);
+  }
+}
+ENTER['s-taxi']=()=>play(taxiRun);$('#taxi-replay').onclick=()=>replay(taxiRun);
+
+/* ================= CONTEXT WINDOW ================= */
+const CTX={cap:100,fixed:[{label:'System',size:6,col:'var(--purple)'},{label:'Tools',size:4,col:'var(--teal)'}],items:[],n:0,f:0};
+const ctxUsed=()=>[...CTX.fixed,...CTX.items].reduce((a,s)=>a+s.size,0);
+function ctxRender(){
+  $('#ctx-bar').innerHTML=[...CTX.fixed,...CTX.items].map(s=>`<div class="seg ${s.fresh?'fresh':''}" style="width:${s.size}%;background:${s.col}" title="${esc(s.label)} · ${s.size}k">${s.size>=5?esc(s.label):''}</div>`).join('');
+  CTX.items.forEach(s=>s.fresh=false);
+  const u=ctxUsed(),el=$('#ctx-used');el.textContent=`${u}k / ${CTX.cap}k tokens (${u}%)`;
+  el.style.color=u>85?'var(--red)':u>60?'var(--yellow)':'var(--green)';
+}
+function ctxFit(){
+  const dropped=[];while(ctxUsed()>CTX.cap&&CTX.items.length)dropped.push(CTX.items.shift());
+  const robot=$('#ctx-robot'),u=ctxUsed();
+  if(dropped.length){
+    dropped.forEach(d=>{const s=document.createElement('span');s.className='fallen';s.textContent=d.label;$('#ctx-floor').appendChild(s);});
+    setMood(robot,'sad');
+    say('#ctx-say','Robo',`¡Se me cayó de la mesa: <b>${dropped.map(d=>esc(d.label)).join(', ')}</b>! Ya no me acuerdo de eso. (Algunas apps <b>compactan</b> en lugar de tirar).`);
+  }else if(u>85){setMood(robot,'wow');say('#ctx-say','Robo','¡La mesa está casi llena! Lo próximo que entre va a empujar lo más viejo.');}
+  else if(u>60){setMood(robot,'think');say('#ctx-say','Robo','Se está llenando… y recordá que <b>todo esto</b> se reenvía en cada mensaje.');}
+  else{setMood(robot,'happy');say('#ctx-say','Robo',`Tengo ${u}k tokens sobre la mesa. ¡Todo bajo control!`);}
+  ctxRender();
+}
+const ctxDo={
+  msg(){CTX.n++;CTX.items.push({label:'Vos #'+CTX.n,size:3,col:'var(--pink)',fresh:true},{label:'Robo #'+CTX.n,size:6,col:'var(--cyan)',fresh:true});ctxFit();},
+  file(){CTX.f++;CTX.items.push({label:'archivo'+CTX.f+'.js',size:22,col:'var(--orange)',fresh:true});ctxFit();},
+  compact(){
+    const sum=CTX.items.reduce((a,s)=>a+s.size,0);if(!sum)return;
+    CTX.items=[{label:'Resumen',size:Math.max(3,Math.round(sum*.25)),col:'var(--green)',fresh:true}];
+    ctxRender();setMood($('#ctx-robot'),'happy');
+    say('#ctx-say','Robo',`Resumí ${sum}k tokens en ${CTX.items[0].size}k. Liberé espacio… pero <b>perdí detalles</b> en el camino.`);
+  },
+  reset(){CTX.items=[];CTX.n=0;CTX.f=0;$('#ctx-floor').innerHTML='';setMood($('#ctx-robot'),'happy');say('#ctx-say','Robo','¡Mesa limpia! Conversación nueva, contexto nuevo.');ctxRender();}
+};
+$('#ctx-msg').onclick=ctxDo.msg;$('#ctx-file').onclick=ctxDo.file;$('#ctx-compact').onclick=ctxDo.compact;$('#ctx-reset').onclick=()=>{EPOCH++;ctxDo.reset();};
+$('#ctx-auto').onclick=()=>replay(async w=>{
+  ctxDo.reset();await w(700);
+  for(const a of ['msg','msg','file','msg','file','msg','file','msg','file','compact','msg']){ctxDo[a]();await w(a==='compact'?2200:1300);}
+});
+ctxRender();
+
+/* ================= LOST IN THE MIDDLE ================= */
+const LIM_N=24;
+$('#lim-pages').innerHTML=Array.from({length:LIM_N},(_,j)=>{const att=.22+.78*Math.pow(Math.abs(j/(LIM_N-1)-.5)*2,1.6);return `<i style="--att:${att.toFixed(2)}"></i>`;}).join('');
+async function limRun(w){
+  const pages=$$('#lim-pages i'),res=$('#lim-res'),robot=$('#lim-robot');res.innerHTML='';pages.forEach(p=>p.className='');
+  const trials=[[1,true,'al principio (página 2)'],[11,false,'en el medio (página 12)'],[22,true,'al final (página 23)']];
+  await w(1000);
+  for(const [pos,ok,where] of trials){
+    pages.forEach(p=>p.className='');pages[pos].classList.add('key');setMood(robot,'think');
+    say('#lim-say','Robo',`El dato está <b>${where}</b>. Leyendo…`);await w(600);
+    for(let j=0;j<LIM_N;j++){pages[j].classList.add('scan');await w(55);pages[j].classList.remove('scan');}
+    res.insertAdjacentHTML('beforeend',`<div class="${ok?'ok':'ko'}">${ok?'✓':'✗'} Dato ${where}: ${ok?'“vence el viernes”':'“no encuentro esa información”'}</div>`);
+    setMood(robot,ok?'happy':'sad');
+    say('#lim-say','Robo',ok?'¡Lo encontré! Estaba en una zona que leo con atención.':'Uy… estaba ahí, pero en el medio de tanto texto <b>se me pasó</b>.');
+    await w(1500);
+  }
+}
+ENTER['s-lim']=()=>play(limRun);$('#lim-replay').onclick=()=>replay(limRun);
+
+/* ================= TEMPERATURE ================= */
+const TL=[['azul',3.0],['nublado',2.3],['despejado',1.9],['gris',1.3],['hermoso',.9],['verde',-.6],['de chocolate',-2.0]];
+const tcol=i=>i<2?'var(--cyan)':i<5?'var(--purple)':'var(--orange)';
+function probsAt(T){const ex=TL.map(([,l])=>Math.exp(l/T));const s=ex.reduce((a,b)=>a+b,0);return ex.map(e=>e/s);}
+function tempRender(){
+  const T=parseFloat($('#t-range').value);$('#t-val').textContent=T.toFixed(1);const ps=probsAt(T);
+  $('#t-probs').innerHTML=TL.map(([t],i)=>`<div class="prob"><span>${esc(t)}</span><div class="track"><div class="fill" style="width:${(ps[i]*100).toFixed(1)}%;background:${tcol(i)};transition:none"></div></div><span>${(ps[i]*100).toFixed(ps[i]<.1?1:0)}%</span></div>`).join('');
+  const r=$('#t-robot');
+  if(T<=.3){setMood(r,'think');$('#t-mood').textContent='🧊 Muy determinista';say('#t-say','Robo','Temperatura baja: casi siempre digo <b>“azul”</b>. Predecible y confiable.');}
+  else if(T<=1){setMood(r,'happy');$('#t-mood').textContent='⚖️ Equilibrado';say('#t-say','Robo','Temperatura media: normalmente “azul”, a veces “nublado” o “despejado”.');}
+  else if(T<=1.5){setMood(r,'wow');$('#t-mood').textContent='🎨 Creativo';say('#t-say','Robo','Temperatura alta: las opciones raras empiezan a tener chances…');}
+  else{setMood(r,'wow');$('#t-mood').textContent='🌪️ Caótico';say('#t-say','Robo','¡Temperatura muy alta! Hasta “de chocolate” tiene chances. No me pidas código así.');}
+}
+function pick(ps){let x=Math.random(),a=0;for(let i=0;i<ps.length;i++){a+=ps[i];if(x<a)return i;}return ps.length-1;}
+$('#t-range').addEventListener('input',tempRender);
+$('#t-sample').onclick=()=>replay(async w=>{
+  const ps=probsAt(parseFloat($('#t-range').value)),box=$('#t-samples'),rows=$$('#t-probs .prob');box.innerHTML='';
+  for(let k=0;k<20;k++){
+    const i=pick(ps);rows.forEach((r,j)=>r.classList.toggle('win',j===i));
+    box.insertAdjacentHTML('beforeend',`<span class="sample" style="color:${tcol(i)}">${esc(TL[i][0])}</span>`);await w(110);
+  }
+  rows.forEach(r=>r.classList.remove('win'));
+});
+ENTER['s-temp']=tempRender;tempRender();
+
+/* ================= CACHE ================= */
+const CB={
+  sysA:{name:'System prompt',tk:2000},sysB:{name:'System + “10:32 hs”',tk:2000,changed:true},
+  man:{name:'Manual del producto',tk:20000},q1:{name:'Pregunta 1',tk:150},a1:{name:'Respuesta 1',tk:400},
+  q2:{name:'Pregunta 2',tk:150},a2:{name:'Respuesta 2',tk:400},q3:{name:'Pregunta 3',tk:150}
+};
+const SC={r1:['sysA','man','q1'],r2:['sysA','man','q1','a1','q2'],r3:['sysB','man','q1','a1','q2','a2','q3']};
+let cacheStore=[];
+function shelfRender(){$('#cache-shelf').innerHTML=cacheStore.length?cacheStore.map(id=>`<span>${esc(CB[id].name)}</span>`).join(''):'<span style="background:none;color:var(--muted)">(vacío)</span>';}
+function race(id,secs,tid){const f=$(id);f.style.transition='none';f.style.width='0';void f.offsetWidth;f.style.transition=`width ${secs}s linear`;f.style.width='100%';$(tid).textContent=secs.toFixed(1)+' s';}
+function runCache(key){
+  replay(async w=>{
+    const ids=SC[key],char=$('#cache-char'),wasEmpty=!cacheStore.length;
+    let hit=0;while(hit<ids.length&&hit<cacheStore.length&&ids[hit]===cacheStore[hit])hit++;
+    $('#cache-blocks').innerHTML=ids.map(id=>{const b=CB[id];return `<div class="cb ${b.changed?'changed':''}" style="--g:${Math.sqrt(b.tk).toFixed(1)}"><b>${esc(b.name)}</b><span>${nf(b.tk)} tk</span><em></em></div>`;}).join('');
+    $('#cache-fill').style.width='0';$('#cache-pct').textContent='…';
+    ['#lat-no','#lat-yes'].forEach(id=>{$(id).style.transition='none';$(id).style.width='0';});$('#lat-no-t').textContent='…';$('#lat-yes-t').textContent='…';
+    setMood(char,'think');say('#cache-say','Cachi','Comparando con mi estante, desde el principio…');
+    const els=$$('.cb',$('#cache-blocks'));
+    for(let i=0;i<els.length;i++){
+      els[i].classList.add('scan');await w(430);els[i].classList.remove('scan');
+      const h=i<hit;els[i].classList.add(h?'hit':'miss');$('em',els[i]).textContent=h?'HIT ✓':'MISS ✗';
+    }
+    const tot=ids.reduce((a,id)=>a+CB[id].tk,0),hitTk=ids.slice(0,hit).reduce((a,id)=>a+CB[id].tk,0),missTk=tot-hitTk;
+    const pct=Math.round((hitTk*.1+missTk)/tot*100);
+    $('#cache-fill').style.width=pct+'%';$('#cache-pct').textContent=pct+'%';
+    const tNo=tot/7000,tYes=Math.max(.3,(missTk+hitTk*.12)/7000);
+    race('#lat-no',tNo,'#lat-no-t');race('#lat-yes',tYes,'#lat-yes-t');
+    if(hit===0&&wasEmpty){setMood(char,'happy');say('#cache-say','Cachi',`Mi estante estaba vacío: <b class="c-red">miss total</b>. Robo procesa los ${nf(tot)} tokens y yo los guardo para la próxima (<i>cache write</i>).`);}
+    else if(hit===0){setMood(char,'sad');say('#cache-say','Cachi','¡<b class="c-red">MISS</b>! Cambió el <b>primer bloque</b>. Como comparo desde el principio, todo lo que viene después ya no coincide. Se reprocesa todo.');}
+    else{setMood(char,'happy');say('#cache-say','Cachi',`¡<b class="c-green">HIT</b>! Ya tenía ${nf(hitTk)} tokens procesados. Robo sólo procesa lo nuevo: ${nf(missTk)}. Pagás el <b>${pct}%</b> y esperás mucho menos.`);}
+    cacheStore=ids.slice();shelfRender();
+  });
+}
+$$('[data-run]').forEach(b=>b.onclick=()=>runCache(b.dataset.run));
+$('#cache-ttl').onclick=()=>{EPOCH++;cacheStore=[];shelfRender();setMood($('#cache-char'),'sleep');say('#cache-say','Cachi','Pasaron 10 minutos sin uso: el <b>TTL venció</b> y vacié el estante. Zzz… La próxima pregunta va a ser un miss.');};
+shelfRender();
+
+/* ================= CACHE TIPS: live ticking clock ================= */
+ENTER['s-tips']=()=>{
+  let sec=0,bh=0,bm=0,gh=0,gm=0;
+  const flash=(el,cls,txt)=>{el.classList.remove('fhit','fmiss');void el.offsetWidth;el.classList.add(cls);$('em',el).textContent=txt;};
+  const tick=()=>{
+    sec+=7;const t=`10:32:${String(sec%60).padStart(2,'0')}`;$('#tip-bc').textContent=t;$('#tip-gc').textContent=t;
+    $$('#tip-bad div').forEach(d=>flash(d,'fmiss','MISS'));bm++;
+    $$('#tip-good div').forEach((d,i)=>i<3?flash(d,'fhit','HIT'):flash(d,'fmiss','nuevo'));gh++;
+    $('#tip-bh').textContent=bh;$('#tip-bm').textContent=bm;$('#tip-gh').textContent=gh;$('#tip-gm').textContent=gm;
+  };
+  ['#tip-bh','#tip-bm','#tip-gh','#tip-gm'].forEach(id=>$(id).textContent='0');
+  TIMERS.push(setTimeout(()=>{tick();every(1900,tick);},1300));
+};
+
+/* ================= STREAMING + TTL ================= */
+const ST_TXT='Para invertir un string en JavaScript podés usar [...str].reverse().join(""). Uso el spread en lugar de split("") para no romper los emojis, que ocupan más de un carácter.';
+$('#st-go').onclick=()=>{
+  $('#st-go').disabled=true;
+  play(async w=>{
+    try{
+      const toks=tokenize(ST_TXT).map(t=>t.t),TTFT=600,STEP=55,total=TTFT+toks.length*STEP;
+      const a=$('#st-a'),b=$('#st-b');a.innerHTML='<span class="spinner"></span> <span class="muted">esperando la respuesta completa…</span>';b.innerHTML='<span class="spinner"></span>';
+      $('#st-t1').textContent='primer texto: …';$('#st-t2').textContent='primer token: …';
+      await w(TTFT);b.textContent='';$('#st-t2').textContent=`primer token: ${(TTFT/1000).toFixed(1)} s`;
+      for(const t of toks){b.textContent+=t;await w(STEP);}
+      a.textContent=ST_TXT;$('#st-t1').textContent=`primer texto: ${(total/1000).toFixed(1)} s`;
+    }finally{$('#st-go').disabled=false;}
+  });
+};
+let ttlLeft=300;
+function ttlDraw(){
+  const ring=$('#ttl-ring'),dead=ttlLeft<=0;
+  ring.style.strokeDashoffset=226*(1-ttlLeft/300);ring.style.stroke=dead?'#f7768e':ttlLeft<90?'#e0af68':'#ff9e64';
+  const t=$('#ttl-txt');t.textContent=dead?'0:00':`${Math.floor(ttlLeft/60)}:${String(Math.floor(ttlLeft%60)).padStart(2,'0')}`;t.setAttribute('fill',dead?'#f7768e':'#ff9e64');
+  if(dead&&!ttlDraw.told){ttlDraw.told=true;$('#ttl-msg').innerHTML='<b class="c-red">Venció.</b> Cachi borró todo. El próximo mensaje va a ser un miss.';}
+}
+$('#ttl-send').onclick=()=>{
+  $('#ttl-msg').innerHTML=ttlLeft>0?'<b class="c-green">HIT ✓</b> La caché seguía viva, y usarla reinicia el reloj.':'<b class="c-red">MISS ✗</b> Hubo que procesar todo de nuevo y volver a guardarlo.';
+  ttlLeft=300;ttlDraw.told=false;ttlDraw();
+};
+ENTER['s-stream']=()=>{ttlLeft=300;ttlDraw.told=false;ttlDraw();every(100,()=>{if(ttlLeft>0){ttlLeft=Math.max(0,ttlLeft-2.5);ttlDraw();}});};
+
+/* ================= PROMPTING ================= */
+const PR_BAD=`// Login.vue
+import Vue from 'vue'
+import axios from 'axios'
+import $ from 'jquery'
+// TODO: validar... algún día
+axios.post('/api/v2/login', datos)`;
+const PR_GOOD=`Plan: 1) schema Zod  2) form  3) test
+
+// LoginForm.tsx
+const schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8) })
+const { register, handleSubmit } = useForm(...)
+await authService.login(data)
+// LoginForm.test.tsx  ✓ 3 tests`;
+async function typeInto(el,text,w,step=3,ms=16){el.textContent='';for(let i=0;i<text.length;i+=step){el.textContent=text.slice(0,i+step);await w(ms);}}
+$('#pr-go').onclick=()=>replay(async w=>{
+  $('#pr-bad-v').classList.remove('on');$('#pr-good-v').classList.remove('on');$('#pr-good').textContent='';
+  await typeInto($('#pr-bad'),PR_BAD,w);$('#pr-bad-v').classList.add('on');setMood($('#pr-r1'),'sad');await w(700);
+  await typeInto($('#pr-good'),PR_GOOD,w);$('#pr-good-v').classList.add('on');
+});
+
+/* ================= HALLUCINATION ================= */
+$('#h-check').onclick=()=>{$('#h-stamp').classList.add('on');$('#h-fix').classList.add('on');setMood($('#h-robot'),'sad');say('#h-say','Robo','Uy… <code>sortByDate</code> <b>no existe</b>. Sonaba tan real… Por eso siempre verificá lo que te digo.');};
+$('#h-reset').onclick=()=>{$('#h-stamp').classList.remove('on');$('#h-fix').classList.remove('on');setMood($('#h-robot'),'happy');say('#h-say','Robo','<code>sortByDate</code> suena re real, ¿no? Yo predigo texto <b>plausible</b>, no texto <b>verdadero</b>.');};
+
+/* ================= AGENT LOOP ================= */
+const AG=[
+  [0,'PIENSA','“Tengo que ver por qué falla el test. Primero lo corro.”',1],
+  [1,'USA HERRAMIENTA','run_command("npm test")',1],
+  [2,'OBSERVA','FAIL cart.test.js · esperaba 10, recibió "55"',3],
+  [0,'PIENSA','“Está concatenando texto en lugar de sumar. Leo cart.js.”',1],
+  [1,'USA HERRAMIENTA','read_file("src/cart.js")',1],
+  [2,'OBSERVA','const total = a + b  // a y b llegan como string',4],
+  [0,'PIENSA','“Convierto a número antes de sumar.”',1],
+  [1,'USA HERRAMIENTA','edit_file → const total = Number(a) + Number(b)',1],
+  [1,'USA HERRAMIENTA','run_command("npm test")',1],
+  [2,'OBSERVA','✓ 42 tests passed',1],
+  [3,'RESPONDE','Listo: el bug era una suma de strings. Te dejo el diff para que lo revises.',1]
+];
+const AG_POS=[[50,13],[86,50],[50,87],[14,50]];
+let agI=0,agCtx=8;
+function agStep(){
+  if(agI>=AG.length)return false;const [n,label,txt,k]=AG[agI++];
+  $$('.loop .node').forEach(el=>el.classList.toggle('on',+el.dataset.n===n));
+  const p=$('#ag-packet');p.style.left=AG_POS[n][0]+'%';p.style.top=AG_POS[n][1]+'%';
+  agCtx+=k;$('#ag-ctx').textContent=`contexto: ${agCtx}k`;
+  const d=document.createElement('div');d.className='t'+n;d.innerHTML=`<b>${label}</b>${esc(txt)}`;
+  const log=$('#ag-log');log.appendChild(d);log.scrollTop=log.scrollHeight;
+  setMood($('#ag-robot'),n===0?'think':n===2?'wow':'happy');
+  if(agI>=AG.length)$('#ag-next').disabled=true;
+  return agI<AG.length;
+}
+function agReset(){agI=0;agCtx=8;$$('.loop .node').forEach(el=>el.classList.remove('on'));const p=$('#ag-packet');p.style.left='50%';p.style.top='50%';$('#ag-ctx').textContent='contexto: 8k';$('#ag-log').innerHTML='<div class="t0"><b>OSDY</b>Arreglá el test que falla en el carrito.</div>';$('#ag-next').disabled=false;setMood($('#ag-robot'),'happy');}
+$('#ag-next').onclick=()=>{EPOCH++;agStep();};
+$('#ag-reset').onclick=()=>{EPOCH++;agReset();};
+$('#ag-auto').onclick=()=>replay(async w=>{agReset();await w(600);while(agStep())await w(1250);});
+
+/* ================= MCP: travelling requests ================= */
+const MCP_POS=[[16,14],[50,7],[84,14],[16,86],[50,93],[84,86]];
+const MCP_EX=[
+  [0,'¿Qué pull requests tengo para revisar?','github.list_pull_requests()','3 PRs abiertos, 1 con cambios pedidos'],
+  [1,'¿Cuántos usuarios se registraron hoy?','db.query("SELECT count(*) …")','128 usuarios nuevos'],
+  [2,'¿Cómo se usa la API nueva de esta librería?','docs.search("…")','Documentación actualizada, ya en el contexto'],
+  [3,'Creá un ticket para el bug del login','tickets.create({ título, pasos })','Ticket #482 creado'],
+  [5,'¿El botón de pago se ve bien en mobile?','browser.screenshot("/checkout")','Captura lista: el botón queda cortado']
+];
+ENTER['s-mcp']=()=>play(async w=>{
+  const p=$('#mcp-packet'),cap=$('#mcp-cap'),plugs=$$('#hub .plug');
+  const move=(x,y)=>{p.style.left=x+'%';p.style.top=y+'%';};
+  move(50,50);p.style.opacity=0;await w(1500);
+  for(;;)for(const [i,q,call,res] of MCP_EX){
+    cap.innerHTML=`<span class="c-pink">Osdy:</span> ${esc(q)}`;await w(1100);
+    cap.innerHTML+=`<br><span class="c-cyan">Robo pide:</span> ${esc(call)}`;
+    p.style.opacity=1;p.style.background='var(--pink)';move(...MCP_POS[i]);await w(700);
+    plugs[i].classList.add('on');await w(600);
+    p.style.background='var(--green)';move(50,50);await w(700);
+    plugs[i].classList.remove('on');p.style.opacity=0;
+    cap.innerHTML+=`<br><span class="c-green">Vuelve:</span> ${esc(res)}`;await w(2100);
+  }
+});
+
+/* ================= RAG ================= */
+const PTS=[
+  {w:'Perros: alimentación',x:70,y:55,c:'#9ece6a'},{w:'Gatos: vacunas',x:125,y:92,c:'#9ece6a'},{w:'Perros: paseos',x:58,y:112,c:'#9ece6a'},
+  {w:'Cambio de aceite',x:300,y:48,c:'#ff9e64'},{w:'Presión de cubiertas',x:345,y:98,c:'#ff9e64'},{w:'Motos: frenos',x:282,y:118,c:'#ff9e64'},
+  {w:'Pagar con tarjeta',x:190,y:180,c:'#bb9af7'},{w:'Pagos en cuotas',x:252,y:208,c:'#bb9af7'},{w:'Descargar factura',x:160,y:228,c:'#bb9af7'}
+];
+const RQ={tarjeta:{x:208,y:192},perro:{x:80,y:78},auto:{x:325,y:88}};
+function ragBase(){
+  return `<g font-family="JetBrains Mono" font-size="10.5">
+    <text x="90" y="22" fill="#9ece6a" text-anchor="middle" font-weight="700" opacity=".7">MASCOTAS</text>
+    <text x="315" y="22" fill="#ff9e64" text-anchor="middle" font-weight="700" opacity=".7">VEHÍCULOS</text>
+    <text x="210" y="154" fill="#bb9af7" text-anchor="middle" font-weight="700" opacity=".7">PAGOS</text>
+    ${PTS.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="6" fill="${p.c}"/><text x="${p.x}" y="${p.y-10}" fill="#cdc3ea" text-anchor="middle">${esc(p.w)}</text>`).join('')}
+  </g>`;
+}
+function ragQuery(k){
+  replay(async w=>{
+    const q=RQ[k],svg=$('#rag-svg'),steps=$$('#rag-flow span'),ret=$('#rag-ret');
+    const on=i=>steps.forEach((s,j)=>s.classList.toggle('on',j===i));
+    svg.innerHTML=ragBase();ret.innerHTML='';on(0);await w(450);on(1);
+    svg.insertAdjacentHTML('beforeend',`<circle cx="${q.x}" cy="${q.y}" r="9" fill="#51e3ff" stroke="#0b0820" stroke-width="3"><animate attributeName="r" values="0;13;9" dur=".5s"/></circle>`);
+    await w(550);on(2);
+    const near=PTS.map(p=>({p,d:Math.hypot(p.x-q.x,p.y-q.y)})).sort((a,b)=>a.d-b.d).slice(0,3);
+    svg.insertAdjacentHTML('afterbegin',near.map(n=>`<line class="rline" x1="${q.x}" y1="${q.y}" x2="${n.p.x}" y2="${n.p.y}" stroke="#51e3ff" stroke-width="2"/>`).join(''));
+    await w(850);on(3);
+    for(const n of near){ret.insertAdjacentHTML('beforeend',`<div style="border-color:${n.p.c}">📄 ${esc(n.p.w)} <span class="muted">· distancia ${n.d.toFixed(0)}</span></div>`);await w(250);}
+    await w(300);on(4);
+  });
+}
+$$('[data-q]').forEach(b=>b.onclick=()=>ragQuery(b.dataset.q));
+$('#rag-svg').innerHTML=ragBase();
+
+/* ================= BEST PRACTICES: workflow stepper ================= */
+ENTER['s-best']=()=>{const st=$$('#best-flow span');let k=-1;const tick=()=>{k=(k+1)%st.length;st.forEach((s,i)=>s.classList.toggle('on',i===k));};tick();every(1300,tick);};
+
+/* ================= INIT ================= */
+const start=parseInt(location.hash.slice(1),10);
+go(Number.isFinite(start)?start-1:0);
+</script>
+</body>
+</html>
