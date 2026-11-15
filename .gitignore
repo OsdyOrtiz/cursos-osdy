@@ -9,3 +9,6 @@ odd/
 .env.*
 *.pem
 *.key
+
+# Promo videos and their build scripts (large, local only)
+media/
